@@ -1,0 +1,707 @@
+<!-- ===== AUTHENTIFIZIERUNG MODUL ===== -->
+<!-- Diesen Code können Sie in Ihr HTML kopieren -->
+
+<!-- 1. FIREBASE CDN (am Anfang des Body oder in Head) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+
+<!-- 2. BCRYPTJS für Passwort-Hashing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
+<!-- 3. AUTH STYLES -->
+<style>
+    /* ====== AUTHENTIFIZIERUNG STYLES ====== */
+    .auth-container {
+        max-width: 400px;
+        margin: 50px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        animation: slideUp 0.5s ease-out;
+    }
+
+    .auth-container h2 {
+        text-align: center;
+        color: var(--primary);
+        margin-bottom: 30px;
+        font-size: 1.8em;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 0.95em;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.05em;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .toggle-auth {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .toggle-auth button {
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        font-weight: 700;
+        text-decoration: underline;
+        padding: 0;
+        margin-left: 5px;
+    }
+
+    .toggle-auth button:hover {
+        color: var(--secondary);
+    }
+
+    .message {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.95em;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .message.error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #c62828;
+    }
+
+    .message.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-left: 4px solid #2e7d32;
+    }
+
+    .message.info {
+        background: #e3f2fd;
+        color: #1565c0;
+        border-left: 4px solid #1565c0;
+    }
+
+    .user-profile {
+        max-width: 400px;
+        margin: 50px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+
+    .user-profile h2 {
+        color: var(--primary);
+        margin-bottom: 20px;
+    }
+
+    .user-info {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        text-align: left;
+    }
+
+    .user-info p {
+        margin: 10px 0;
+        color: #333;
+    }
+
+    .user-info strong {
+        color: var(--primary);
+    }
+
+    .btn-logout {
+        background: linear-gradient(135deg, var(--accent), var(--warning));
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+
+    .btn-logout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- 4. HTML STRUKTUR -->
+<div id="auth-section">
+    <!-- LOGIN/REGISTER FORMS -->
+    <div id="auth-forms" class="auth-container">
+        <!-- REGISTER FORM -->
+        <div id="register-form">
+            <h2>Registrierung</h2>
+            <div id="register-message"></div>
+            <form id="form-register">
+                <div class="form-group">
+                    <label for="register-name">Benutzername</label>
+                    <input 
+                        type="text" 
+                        id="register-name" 
+                        placeholder="Max Mustermann" 
+                        required
+                        minlength="3"
+                        maxlength="50"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Passwort</label>
+                    <input 
+                        type="password" 
+                        id="register-password" 
+                        placeholder="••••••••" 
+                        required
+                        minlength="6"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="register-password-confirm">Passwort bestätigen</label>
+                    <input 
+                        type="password" 
+                        id="register-password-confirm" 
+                        placeholder="••••••••" 
+                        required
+                        minlength="6"
+                    >
+                </div>
+                <button type="submit" class="btn-submit">Registrieren</button>
+            </form>
+            <div class="toggle-auth">
+                Bereits registriert?
+                <button type="button" id="btn-to-login">Jetzt anmelden</button>
+            </div>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="login-form" class="hidden">
+            <h2>Anmeldung</h2>
+            <div id="login-message"></div>
+            <form id="form-login">
+                <div class="form-group">
+                    <label for="login-name">Benutzername</label>
+                    <input 
+                        type="text" 
+                        id="login-name" 
+                        placeholder="Max Mustermann" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Passwort</label>
+                    <input 
+                        type="password" 
+                        id="login-password" 
+                        placeholder="••••••••" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn-submit">Anmelden</button>
+            </form>
+            <div class="toggle-auth">
+                Noch kein Konto?
+                <button type="button" id="btn-to-register">Jetzt registrieren</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PROFILE (Nach Login sichtbar) -->
+    <div id="user-profile" class="user-profile hidden">
+        <h2>Profil</h2>
+        <div class="user-info">
+            <p><strong>Benutzer:</strong> <span id="profile-name"></span></p>
+            <p><strong>Score:</strong> <span id="profile-score">0</span></p>
+            <p><strong>Level:</strong> <span id="profile-level">1</span></p>
+            <p><strong>Fortschritt:</strong> <span id="profile-progress">0</span>%</p>
+            <p><strong>Angemeldet seit:</strong> <span id="profile-date"></span></p>
+        </div>
+        <button class="btn-logout" id="btn-logout">Abmelden</button>
+    </div>
+</div>
+
+<!-- 5. JAVASCRIPT AUTHENTIFIZIERUNG MODULE -->
+<script>
+    // ===== FIREBASE KONFIGURATION =====
+    // WICHTIG: Ersetzen Sie mit Ihren Firebase-Credentials!
+    const firebaseConfig = {
+        apiKey: "AIzaSyDEXAMPLE",           // ← Ihre apiKey
+        authDomain: "projekt.firebaseapp.com",
+        projectId: "projekt-12345",        // ← Ihre projectId
+        storageBucket: "projekt.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcd1234"
+    };
+
+    // Firebase initialisieren
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // ===== AUTHENTIFIZIERUNGS-VARIABLEN =====
+    let currentUser = null;
+    const SALT_ROUNDS = 10;
+
+    // ===== HILFSFUNKTIONEN =====
+    
+    /**
+     * Nachricht anzeigen
+     * @param {string} elementId - ID des Message-Elements
+     * @param {string} message - Nachricht
+     * @param {string} type - 'error', 'success', 'info'
+     */
+    function showMessage(elementId, message, type = 'info') {
+        const element = document.getElementById(elementId);
+        element.innerHTML = `<div class="message ${type}">${message}</div>`;
+        setTimeout(() => {
+            element.innerHTML = '';
+        }, 5000);
+    }
+
+    /**
+     * Passwort hashen
+     */
+    async function hashPassword(password) {
+        return await bcrypt.hash(password, SALT_ROUNDS);
+    }
+
+    /**
+     * Passwort mit Hash vergleichen
+     */
+    async function comparePassword(password, hash) {
+        return await bcrypt.compare(password, hash);
+    }
+
+    /**
+     * Eindeutigkeit des Benutzernamens prüfen
+     */
+    async function isUsernameAvailable(username) {
+        try {
+            const snapshot = await db.collection('users')
+                .where('username', '==', username.toLowerCase())
+                .get();
+            return snapshot.empty;
+        } catch (error) {
+            console.error('Fehler beim Prüfen des Benutzernamens:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Benutzer abrufen nach Benutzername
+     */
+    async function getUserByUsername(username) {
+        try {
+            const snapshot = await db.collection('users')
+                .where('username', '==', username.toLowerCase())
+                .get();
+            
+            if (snapshot.empty) return null;
+            
+            const doc = snapshot.docs[0];
+            return {
+                id: doc.id,
+                ...doc.data()
+            };
+        } catch (error) {
+            console.error('Fehler beim Abrufen des Benutzers:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Session speichern
+     */
+    function saveSession(user) {
+        const sessionData = {
+            id: user.id,
+            username: user.username,
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('currentSession', JSON.stringify(sessionData));
+    }
+
+    /**
+     * Session abrufen
+     */
+    function getSession() {
+        const session = localStorage.getItem('currentSession');
+        return session ? JSON.parse(session) : null;
+    }
+
+    /**
+     * Session löschen
+     */
+    function clearSession() {
+        localStorage.removeItem('currentSession');
+    }
+
+    // ===== REGISTRIERUNG =====
+    document.getElementById('form-register').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('register-name').value.trim();
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-password-confirm').value;
+
+        // Validierung
+        if (password !== confirmPassword) {
+            showMessage('register-message', '❌ Passwörter stimmen nicht überein!', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            showMessage('register-message', '❌ Passwort muss mindestens 6 Zeichen lang sein!', 'error');
+            return;
+        }
+
+        if (username.length < 3) {
+            showMessage('register-message', '❌ Benutzername muss mindestens 3 Zeichen lang sein!', 'error');
+            return;
+        }
+
+        // Button deaktivieren während Registrierung
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>';
+
+        try {
+            // Prüfe ob Benutzername bereits existiert
+            const available = await isUsernameAvailable(username);
+            if (!available) {
+                showMessage('register-message', '❌ Benutzername existiert bereits!', 'error');
+                btn.disabled = false;
+                btn.textContent = originalText;
+                return;
+            }
+
+            // Passwort hashen
+            const passwordHash = await hashPassword(password);
+
+            // Neues Benutzer-Dokument erstellen
+            const newUser = {
+                username: username.toLowerCase(),
+                usernameDisplay: username,
+                passwordHash: passwordHash,
+                score: 0,
+                level: 1,
+                progress: 0,
+                createdAt: new Date(),
+                lastLogin: null,
+                stats: {
+                    quizzesCompleted: 0,
+                    correctAnswers: 0,
+                    totalAnswers: 0
+                }
+            };
+
+            const docRef = await db.collection('users').add(newUser);
+
+            showMessage('register-message', '✅ Registrierung erfolgreich! Sie werden weitergeleitet...', 'success');
+
+            // Automat­isch anmelden
+            setTimeout(() => {
+                currentUser = {
+                    id: docRef.id,
+                    ...newUser
+                };
+                saveSession(currentUser);
+                showUserProfile();
+                document.getElementById('form-register').reset();
+            }, 1500);
+
+        } catch (error) {
+            console.error('Registrierungsfehler:', error);
+            showMessage('register-message', '❌ Ein Fehler ist aufgetreten. Versuchen Sie es später erneut.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
+
+    // ===== LOGIN =====
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('login-name').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        if (!username || !password) {
+            showMessage('login-message', '❌ Benutzername und Passwort erforderlich!', 'error');
+            return;
+        }
+
+        // Button deaktivieren während Login
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>';
+
+        try {
+            // Benutzer suchen
+            const user = await getUserByUsername(username);
+            if (!user) {
+                showMessage('login-message', '❌ Benutzer oder Passwort falsch!', 'error');
+                btn.disabled = false;
+                btn.textContent = originalText;
+                return;
+            }
+
+            // Passwort prüfen
+            const isPasswordValid = await comparePassword(password, user.passwordHash);
+            if (!isPasswordValid) {
+                showMessage('login-message', '❌ Benutzer oder Passwort falsch!', 'error');
+                btn.disabled = false;
+                btn.textContent = originalText;
+                return;
+            }
+
+            // Letzten Login aktualisieren
+            await db.collection('users').doc(user.id).update({
+                lastLogin: new Date()
+            });
+
+            // Session speichern
+            currentUser = user;
+            saveSession(user);
+
+            showMessage('login-message', '✅ Anmeldung erfolgreich!', 'success');
+
+            // UI aktualisieren
+            setTimeout(() => {
+                showUserProfile();
+                document.getElementById('form-login').reset();
+            }, 1000);
+
+        } catch (error) {
+            console.error('Login-Fehler:', error);
+            showMessage('login-message', '❌ Ein Fehler ist aufgetreten.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
+
+    // ===== UI-FUNKTIONEN =====
+    function showUserProfile() {
+        document.getElementById('auth-forms').classList.add('hidden');
+        document.getElementById('user-profile').classList.remove('hidden');
+
+        // Profil ausfüllen
+        document.getElementById('profile-name').textContent = currentUser.usernameDisplay;
+        document.getElementById('profile-score').textContent = currentUser.score;
+        document.getElementById('profile-level').textContent = currentUser.level;
+        document.getElementById('profile-progress').textContent = currentUser.progress;
+        document.getElementById('profile-date').textContent = new Date(currentUser.createdAt.toDate()).toLocaleDateString('de-DE');
+    }
+
+    function showLoginForm() {
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+    }
+
+    function showRegisterForm() {
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.remove('hidden');
+    }
+
+    // ===== ABMELDEN =====
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        currentUser = null;
+        clearSession();
+        
+        document.getElementById('user-profile').classList.add('hidden');
+        document.getElementById('auth-forms').classList.remove('hidden');
+        showRegisterForm();
+
+        document.getElementById('form-login').reset();
+        document.getElementById('form-register').reset();
+    });
+
+    // ===== FORM-TOGGLE =====
+    document.getElementById('btn-to-login').addEventListener('click', showLoginForm);
+    document.getElementById('btn-to-register').addEventListener('click', showRegisterForm);
+
+    // ===== SESSION BEI SEITENLADUNG PRÜFEN =====
+    async function checkSession() {
+        const session = getSession();
+        if (session) {
+            try {
+                const user = await db.collection('users').doc(session.id).get();
+                if (user.exists) {
+                    currentUser = {
+                        id: user.id,
+                        ...user.data()
+                    };
+                    showUserProfile();
+                }
+            } catch (error) {
+                console.error('Fehler beim Wiederherstellen der Session:', error);
+                clearSession();
+            }
+        }
+    }
+
+    // Session beim Laden prüfen
+    window.addEventListener('load', checkSession);
+
+    // ===== DATEN SPEICHERN / ABRUFEN =====
+    /**
+     * Benutzerdaten aktualisieren
+     */
+    async function updateUserData(updates) {
+        if (!currentUser) {
+            console.error('Kein Benutzer angemeldet');
+            return false;
+        }
+
+        try {
+            await db.collection('users').doc(currentUser.id).update(updates);
+            
+            // Lokale Daten aktualisieren
+            Object.assign(currentUser, updates);
+            
+            // Profil aktualisieren
+            if (document.getElementById('user-profile').classList.contains('hidden') === false) {
+                document.getElementById('profile-score').textContent = currentUser.score;
+                document.getElementById('profile-level').textContent = currentUser.level;
+                document.getElementById('profile-progress').textContent = currentUser.progress;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Fehler beim Aktualisieren der Daten:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Score erhöhen
+     */
+    async function addScore(points) {
+        if (!currentUser) return false;
+        const newScore = (currentUser.score || 0) + points;
+        return await updateUserData({ score: newScore });
+    }
+
+    /**
+     * Level erhöhen
+     */
+    async function setLevel(level) {
+        if (!currentUser) return false;
+        return await updateUserData({ level: level });
+    }
+
+    /**
+     * Fortschritt aktualisieren
+     */
+    async function setProgress(progress) {
+        if (!currentUser) return false;
+        return await updateUserData({ progress: progress });
+    }
+
+    // ===== ÖFFENTLICHE FUNKTIONEN FÜR EXTERNE SCRIPTS =====
+    window.Auth = {
+        getCurrentUser: () => currentUser,
+        isLoggedIn: () => currentUser !== null,
+        updateUserData: updateUserData,
+        addScore: addScore,
+        setLevel: setLevel,
+        setProgress: setProgress
+    };
+
+    console.log('✅ Authentifizierungs-Modul geladen');
+</script>
