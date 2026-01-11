@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Beast - Gamification</title>
+    <title>Study Beast - Professional Edition</title>
     <style>
         * {
             margin: 0;
@@ -11,254 +11,651 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #f5576c;
+            --success: #4ecdc4;
+            --warning: #ff6b6b;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
+        /* ====== HEADER ====== */
         .header {
             text-align: center;
             color: white;
             margin-bottom: 30px;
-            animation: slideDown 0.5s ease-out;
+            animation: slideDown 0.6s ease-out;
         }
 
         .header h1 {
-            font-size: 3em;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 3.2em;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+            letter-spacing: 2px;
         }
 
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        /* ====== STATS BAR ====== */
         .stats-bar {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
             border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            animation: fadeIn 0.5s ease-out 0.2s both;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            animation: fadeIn 0.6s ease-out 0.1s both;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .stat-item {
             text-align: center;
             color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: scale(1.05);
         }
 
         .stat-value {
-            font-size: 2em;
-            font-weight: bold;
+            font-size: 2.5em;
+            font-weight: 800;
             display: block;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
         }
 
+        .stat-label {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        /* ====== TAB BUTTONS ====== */
         .tab-buttons {
             display: flex;
             gap: 15px;
             margin-bottom: 30px;
-            animation: fadeIn 0.5s ease-out 0.4s both;
+            animation: fadeIn 0.6s ease-out 0.2s both;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 15px;
-            border: none;
+            min-width: 150px;
+            padding: 16px 20px;
+            border: 2px solid transparent;
             border-radius: 15px;
-            font-size: 1.1em;
-            font-weight: bold;
+            font-size: 1.05em;
+            font-weight: 700;
             cursor: pointer;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             color: white;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
         }
 
         .tab-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
 
         .tab-btn.active {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            box-shadow: 0 5px 20px rgba(245,87,108,0.4);
+            box-shadow: 0 8px 30px rgba(245,87,108,0.4);
+            border-color: rgba(255,255,255,0.4);
         }
 
+        /* ====== CONTENT SECTIONS ====== */
         .content-section {
             display: none;
-            animation: fadeIn 0.3s ease-out;
+            animation: fadeIn 0.4s ease-out;
         }
 
         .content-section.active {
             display: block;
         }
 
-        .trophy-path {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
+        /* ====== PATH OVERVIEW ====== */
+        .path-container {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 35px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .path-title {
+            color: white;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin: 0;
+        }
+
+        .settings-gear {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            transition: all 0.3s ease;
+        }
+
+        .settings-gear:hover {
+            transform: rotate(20deg) scale(1.1);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .path-overview {
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .path-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: white;
+            font-size: 0.95em;
+        }
+
+        .progress-rail {
+            position: relative;
+            height: 40px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .progress-beam {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+            border-radius: 18px;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            box-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.6),
+                inset 0 0 10px rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: #333;
+            font-weight: 800;
+            font-size: 0.9em;
+        }
+
+        .progress-beam::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            width: 15px;
+            height: 15px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: beamPulse 1.5s ease-in-out infinite;
+        }
+
+        .milestone-rail {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            position: relative;
+            height: 50px;
+        }
+
+        .milestone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .milestone-marker {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .milestone:hover .milestone-marker {
+            transform: scale(1.2);
+            background: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .milestone-label {
+            color: white;
+            font-size: 0.8em;
+            text-align: center;
+            max-width: 80px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .milestone:hover .milestone-label {
+            opacity: 1;
+        }
+
+        .milestone-detail {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .milestone:hover .milestone-detail {
+            opacity: 1;
+        }
+
+        /* ====== TROPHY GRID ====== */
         .trophy-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 20px;
-            margin-top: 20px;
+            margin-top: 25px;
         }
 
         .trophy-item {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             border-radius: 15px;
             padding: 20px;
             text-align: center;
             color: white;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            border: 2px solid transparent;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trophy-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            opacity: 0;
+            transition: opacity 0.6s;
+        }
+
+        .trophy-item:hover::before {
+            opacity: 1;
         }
 
         .trophy-item:hover {
-            transform: scale(1.05) rotate(2deg);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-8px) scale(1.08);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .trophy-item.locked {
+            opacity: 0.6;
+            background: rgba(100,100,100,0.2);
         }
 
         .trophy-item.unlocked {
             background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
             color: #333;
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            animation: unlockPulse 0.6s ease-out;
         }
 
         .trophy-icon {
             font-size: 3em;
             margin-bottom: 10px;
+            display: block;
         }
 
-        .challenge-section {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
+        .trophy-name {
+            font-weight: 700;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+
+        .trophy-requirement {
+            font-size: 0.85em;
+            opacity: 0.85;
+        }
+
+        /* ====== CHALLENGE MODE ====== */
+        .challenge-container {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 35px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .mode-selector {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
-            flex-wrap: wrap;
         }
 
         .mode-btn {
-            padding: 12px 24px;
-            border: none;
+            padding: 14px 20px;
+            border: 2px solid transparent;
             border-radius: 12px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             color: white;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
             transition: all 0.3s ease;
+            font-size: 0.95em;
         }
 
         .mode-btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.25);
         }
 
         .mode-btn.active {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            box-shadow: 0 5px 20px rgba(0,242,254,0.4);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
+            border-color: rgba(255,255,255,0.3);
         }
 
         .timer-display {
-            font-size: 5em;
+            font-size: 5.5em;
             text-align: center;
             color: white;
-            font-weight: bold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-            margin: 30px 0;
+            font-weight: 900;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+            margin: 40px 0;
             font-family: 'Courier New', monospace;
+            letter-spacing: 8px;
+            font-variant-numeric: tabular-nums;
         }
 
         .timer-display.warning {
             color: #ff6b6b;
-            animation: shake 0.5s infinite;
+            animation: shake 0.4s infinite;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
         }
 
         .todo-input {
-            width: 100%;
-            padding: 15px;
-            border: none;
+            flex: 1;
+            padding: 16px 18px;
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 12px;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-            background: rgba(255,255,255,0.9);
+            font-size: 1em;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
         .todo-list {
-            margin: 20px 0;
+            margin: 25px 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .todo-item {
-            background: rgba(255,255,255,0.2);
-            padding: 15px;
+            background: rgba(255,255,255,0.15);
+            padding: 16px;
             border-radius: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s ease;
+            border-left: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .todo-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
         }
 
         .todo-item.completed {
-            background: rgba(76,175,80,0.3);
+            background: rgba(76, 175, 80, 0.25);
             text-decoration: line-through;
             opacity: 0.7;
+            border-left-color: #4ecdc4;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-small {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .btn-small:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
         }
 
         .challenge-btn {
             width: 100%;
-            padding: 20px;
+            padding: 18px;
             border: none;
             border-radius: 15px;
-            font-size: 1.3em;
-            font-weight: bold;
+            font-size: 1.15em;
+            font-weight: 700;
             cursor: pointer;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(245,87,108,0.4);
-            margin-top: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(245,87,108,0.4);
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .challenge-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(245,87,108,0.6);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(245,87,108,0.6);
         }
 
         .challenge-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.98);
         }
 
-        .confetti {
+        /* ====== POMODORO ====== */
+        .pomodoro-container {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        /* ====== SETTINGS PANEL ====== */
+        .settings-panel {
             position: fixed;
-            width: 10px;
-            height: 10px;
-            pointer-events: none;
+            right: -400px;
+            top: 0;
+            width: 380px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            box-shadow: -8px 0 30px rgba(0,0,0,0.3);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
+            overflow-y: auto;
+            padding: 30px;
         }
 
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            color: white;
+        }
+
+        .settings-header h2 {
+            font-size: 1.5em;
+        }
+
+        .close-settings {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-settings:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+        }
+
+        .setting-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .setting-value {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.85em;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ====== ANIMATIONS ====== */
         @keyframes slideDown {
             from {
-                transform: translateY(-50px);
+                transform: translateY(-30px);
                 opacity: 0;
             }
             to {
@@ -272,15 +669,20 @@
             to { opacity: 1; }
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        @keyframes beamPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes unlockPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         @keyframes confettiFall {
@@ -290,40 +692,35 @@
             }
         }
 
-        .diamond-path {
-            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 20px;
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            pointer-events: none;
+            z-index: 999;
         }
 
-        .path-title {
-            color: white;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
 
-        .progress-bar {
-            background: rgba(255,255,255,0.3);
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
+            .timer-display {
+                font-size: 3.5em;
+            }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ffd700, #ffed4e);
-            border-radius: 15px;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            color: #333;
-            font-weight: bold;
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                min-width: 100%;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
         }
     </style>
 </head>
@@ -331,58 +728,88 @@
     <div class="container">
         <div class="header">
             <h1>🔥 STUDY BEAST 🔥</h1>
-            <p>Level up dein Lernspiel!</p>
+            <p>Dein Fokus-Kraftwerk mit Gamification</p>
         </div>
 
         <div class="stats-bar">
             <div class="stat-item">
                 <span class="stat-value" id="coins">0</span>
-                <span>💰 Goldmünzen</span>
+                <span class="stat-label">💰 Goldmünzen</span>
             </div>
             <div class="stat-item">
                 <span class="stat-value" id="diamonds">0</span>
-                <span>💎 Diamanten</span>
+                <span class="stat-label">💎 Diamanten</span>
             </div>
             <div class="stat-item">
                 <span class="stat-value" id="pomodoros">0</span>
-                <span>🍅 Pomodoros</span>
+                <span class="stat-label">🍅 Pomodoros</span>
             </div>
         </div>
 
         <div class="tab-buttons">
-            <button class="tab-btn active" onclick="switchTab('trophy')">🏆 Trophäenpfad</button>
-            <button class="tab-btn" onclick="switchTab('challenge')">⚡ Challenge Mode</button>
-            <button class="tab-btn" onclick="switchTab('pomodoro')">🍅 Pomodoro</button>
+            <button class="tab-btn active" data-tab="trophy">🏆 Trophäenpfade</button>
+            <button class="tab-btn" data-tab="challenge">⚡ Challenge Mode</button>
+            <button class="tab-btn" data-tab="pomodoro">🍅 Pomodoro</button>
         </div>
 
+        <!-- TROPHY SECTION -->
         <div id="trophy-section" class="content-section active">
-            <div class="trophy-path">
-                <h2 class="path-title">🏆 GOLD PFAD - Trophäen</h2>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="gold-progress" style="width: 0%">0/15</div>
+            <div class="path-container">
+                <div class="path-header">
+                    <h2 class="path-title">🏆 GOLD PFAD</h2>
+                    <div class="settings-gear" onclick="openSettings()">⚙️</div>
                 </div>
+
+                <div class="path-overview">
+                    <div class="path-stats">
+                        <span>Fortschritt: <strong id="gold-current">0</strong> / <strong>100</strong> Pomodoros</span>
+                        <span id="gold-percentage">0%</span>
+                    </div>
+                    <div class="progress-rail">
+                        <div class="progress-beam" id="gold-progress" style="width: 0%"></div>
+                    </div>
+
+                    <div class="milestone-rail" id="gold-milestones"></div>
+                </div>
+
                 <div class="trophy-grid" id="trophy-grid"></div>
             </div>
 
-            <div class="diamond-path">
-                <h2 class="path-title">💎 DIAMANT PFAD - Modi</h2>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="diamond-progress" style="width: 0%">0/15</div>
+            <div class="path-container">
+                <div class="path-header">
+                    <h2 class="path-title">💎 DIAMANT PFAD</h2>
+                    <div class="settings-gear" onclick="openSettings()">⚙️</div>
                 </div>
+
+                <div class="path-overview">
+                    <div class="path-stats">
+                        <span>Fortschritt: <strong id="diamond-current">0</strong> / <strong>75</strong> Challenges</span>
+                        <span id="diamond-percentage">0%</span>
+                    </div>
+                    <div class="progress-rail">
+                        <div class="progress-beam" id="diamond-progress" style="width: 0%"></div>
+                    </div>
+
+                    <div class="milestone-rail" id="diamond-milestones"></div>
+                </div>
+
                 <div class="trophy-grid" id="diamond-grid"></div>
             </div>
         </div>
 
+        <!-- CHALLENGE SECTION -->
         <div id="challenge-section" class="content-section">
-            <div class="challenge-section">
+            <div class="challenge-container">
                 <h2 class="path-title">⚡ CHALLENGE MODE</h2>
-                
+
                 <div class="mode-selector" id="mode-selector"></div>
 
                 <div class="timer-display" id="timer">00:00</div>
 
-                <input type="text" class="todo-input" id="todo-input" placeholder="Neue Aufgabe hinzufügen...">
-                <button class="challenge-btn" onclick="addTodo()">➕ Aufgabe hinzufügen</button>
+                <div class="input-group">
+                    <input type="text" class="todo-input" id="todo-input" placeholder="Neue Aufgabe...">
+                    <button class="challenge-btn" style="width: auto; padding: 16px 20px;" onclick="addTodo()">➕</button>
+                </div>
 
                 <div class="todo-list" id="todo-list"></div>
 
@@ -390,13 +817,60 @@
             </div>
         </div>
 
+        <!-- POMODORO SECTION -->
         <div id="pomodoro-section" class="content-section">
-            <div class="challenge-section">
+            <div class="pomodoro-container">
                 <h2 class="path-title">🍅 POMODORO TIMER</h2>
                 <div class="timer-display" id="pomodoro-timer">25:00</div>
-                <button class="challenge-btn" onclick="startPomodoro()">▶️ Pomodoro starten</button>
-                <button class="challenge-btn" onclick="resetPomodoro()">🔄 Zurücksetzen</button>
+                <div class="button-group">
+                    <button class="challenge-btn" onclick="startPomodoro()" style="flex: 1;">▶️ Starten</button>
+                    <button class="challenge-btn" onclick="resetPomodoro()" style="flex: 1;">🔄 Zurücksetzen</button>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-header">
+            <h2>Einstellungen</h2>
+            <button class="close-settings" onclick="closeSettings()">✕</button>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Effektstärke</label>
+            <input type="range" id="effect-intensity" class="slider" min="0" max="100" value="70">
+            <div class="setting-value"><span id="intensity-value">70</span>%</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Ablenkungsfilter</label>
+            <select style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: white;">
+                <option value="minimal">🔇 Minimal</option>
+                <option value="balanced" selected>⚖️ Balanced</option>
+                <option value="overdrive">⚡ Overdrive</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Dynamik-Modus</label>
+            <select style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: white;">
+                <option value="static">🔲 Statisch</option>
+                <option value="pulsing" selected>💓 Pulsierend</option>
+                <option value="reactive">⚙️ Reaktiv</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">
+                <input type="checkbox" checked> ✅ Effekte aktivieren
+            </label>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">
+                <input type="checkbox" checked> 🔊 Sound aktivieren
+            </label>
         </div>
     </div>
 
@@ -439,7 +913,7 @@
 
         const challengeModes = [
             'Literaturprofessor 📖',
-            'Mathe Light Yagami 🧮',
+            'Mathe Magier 🧮',
             'Physik Phantom 🔬',
             'Chemie Champion 🧪',
             'Bio Boss 🧬',
@@ -453,8 +927,7 @@
             pomodoros: 0,
             todos: [],
             currentMode: challengeModes[0],
-            challengeActive: false,
-            challengeStartTime: null
+            challengeActive: false
         };
 
         let pomodoroInterval = null;
@@ -466,41 +939,89 @@
             renderTrophies();
             renderDiamondModes();
             renderModeSelector();
+            renderMilestones();
             updateStats();
+            setupTabListeners();
+            setupSettingsSliders();
+        }
+
+        function setupTabListeners() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-section`).classList.add('active');
+        }
+
+        function renderMilestones() {
+            renderMilestonePath('gold-milestones', goldTrophies.slice(0, 7));
+            renderMilestonePath('diamond-milestones', diamondModes.slice(0, 7));
+        }
+
+        function renderMilestonePath(containerId, items) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'milestone';
+                div.innerHTML = `
+                    <div class="milestone-marker">${item.icon}</div>
+                    <div class="milestone-label">${item.name}</div>
+                    <div class="milestone-detail">${item.requirement}</div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         function renderTrophies() {
             const grid = document.getElementById('trophy-grid');
             grid.innerHTML = '';
-            goldTrophies.forEach((trophy, index) => {
+            goldTrophies.forEach(trophy => {
                 const unlocked = gameData.pomodoros >= trophy.requirement;
                 const div = document.createElement('div');
-                div.className = `trophy-item ${unlocked ? 'unlocked' : ''}`;
+                div.className = `trophy-item ${unlocked ? 'unlocked' : 'locked'}`;
                 div.innerHTML = `
-                    <div class="trophy-icon">${trophy.icon}</div>
-                    <div><strong>${trophy.name}</strong></div>
-                    <div style="font-size: 0.9em; margin-top: 5px;">${trophy.requirement} 🍅</div>
+                    <span class="trophy-icon">${trophy.icon}</span>
+                    <div class="trophy-name">${trophy.name}</div>
+                    <div class="trophy-requirement">${trophy.requirement} 🍅</div>
                 `;
                 grid.appendChild(div);
             });
-            updateProgress('gold-progress', gameData.pomodoros, 100);
+            updateProgress('gold-progress', gameData.pomodoros, 100, 'gold');
         }
 
         function renderDiamondModes() {
             const grid = document.getElementById('diamond-grid');
             grid.innerHTML = '';
-            diamondModes.forEach((mode, index) => {
+            diamondModes.forEach(mode => {
                 const unlocked = gameData.diamonds >= mode.requirement;
                 const div = document.createElement('div');
-                div.className = `trophy-item ${unlocked ? 'unlocked' : ''}`;
+                div.className = `trophy-item ${unlocked ? 'unlocked' : 'locked'}`;
                 div.innerHTML = `
-                    <div class="trophy-icon">${mode.icon}</div>
-                    <div><strong>${mode.name}</strong></div>
-                    <div style="font-size: 0.9em; margin-top: 5px;">${mode.requirement} 💎</div>
+                    <span class="trophy-icon">${mode.icon}</span>
+                    <div class="trophy-name">${mode.name}</div>
+                    <div class="trophy-requirement">${mode.requirement} 💎</div>
                 `;
                 grid.appendChild(div);
             });
-            updateProgress('diamond-progress', gameData.diamonds, 75);
+            updateProgress('diamond-progress', gameData.diamonds, 75, 'diamond');
+        }
+
+        function updateProgress(id, current, max, type) {
+            const percent = Math.min((current / max) * 100, 100);
+            document.getElementById(id).style.width = percent + '%';
+            document.getElementById(id).textContent = `${current}/${max}`;
+            document.getElementById(`${type}-percentage`).textContent = `${Math.round(percent)}%`;
+            document.getElementById(`${type}-current`).textContent = current;
         }
 
         function renderModeSelector() {
@@ -510,35 +1031,18 @@
                 const btn = document.createElement('button');
                 btn.className = `mode-btn ${mode === gameData.currentMode ? 'active' : ''}`;
                 btn.textContent = mode;
-                btn.onclick = () => selectMode(mode);
+                btn.onclick = () => {
+                    gameData.currentMode = mode;
+                    renderModeSelector();
+                };
                 selector.appendChild(btn);
             });
-        }
-
-        function selectMode(mode) {
-            gameData.currentMode = mode;
-            renderModeSelector();
-        }
-
-        function updateProgress(id, current, max) {
-            const progress = Math.min((current / max) * 100, 100);
-            const element = document.getElementById(id);
-            element.style.width = progress + '%';
-            element.textContent = `${current}/${max}`;
         }
 
         function updateStats() {
             document.getElementById('coins').textContent = gameData.coins;
             document.getElementById('diamonds').textContent = gameData.diamonds;
             document.getElementById('pomodoros').textContent = gameData.pomodoros;
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(`${tab}-section`).classList.add('active');
         }
 
         function addTodo() {
@@ -559,15 +1063,31 @@
                 div.className = `todo-item ${todo.completed ? 'completed' : ''}`;
                 div.innerHTML = `
                     <span>${todo.text}</span>
-                    <span>${todo.completed ? '✅' : '⏳'}</span>
+                    <div class="action-buttons">
+                        <button class="btn-small" onclick="toggleTodo(${todo.id})">${todo.completed ? '↩️' : '✅'}</button>
+                        <button class="btn-small" onclick="deleteTodo(${todo.id})">🗑️</button>
+                    </div>
                 `;
                 list.appendChild(div);
             });
         }
 
+        function toggleTodo(id) {
+            const todo = gameData.todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                renderTodos();
+            }
+        }
+
+        function deleteTodo(id) {
+            gameData.todos = gameData.todos.filter(t => t.id !== id);
+            renderTodos();
+        }
+
         function startChallenge() {
             if (gameData.todos.length === 0) {
-                alert('Füge erst Aufgaben hinzu!');
+                alert('➕ Füge erst Aufgaben hinzu!');
                 return;
             }
 
@@ -575,14 +1095,14 @@
                 gameData.challengeActive = true;
                 challengeSeconds = 0;
                 document.getElementById('start-challenge').textContent = '⏸️ Challenge läuft...';
-                
+
                 challengeInterval = setInterval(() => {
                     challengeSeconds++;
                     const mins = Math.floor(challengeSeconds / 60);
                     const secs = challengeSeconds % 60;
                     const timerEl = document.getElementById('timer');
                     timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    
+
                     if (challengeSeconds > 300) {
                         timerEl.classList.add('warning');
                     }
@@ -601,7 +1121,7 @@
                     renderTodos();
                     createConfetti();
                     playSound();
-                    
+
                     if (gameData.todos.every(t => t.completed)) {
                         endChallenge();
                     }
@@ -613,83 +1133,85 @@
             gameData.challengeActive = false;
             clearInterval(challengeInterval);
             document.removeEventListener('keydown', handleSpacebar);
-            
-            const reward = Math.floor(Math.random() * 5) + 3;
+
+            const reward = Math.floor(Math.random() * 8) + 5;
             gameData.diamonds += reward;
-            gameData.coins += reward * 2;
-            
-            document.getElementById('start-challenge').textContent = '🎉 Challenge abgeschlossen!';
+            gameData.coins += reward * 3;
+
+            document.getElementById('start-challenge').textContent = '🎉 Abgeschlossen!';
             setTimeout(() => {
-                document.getElementById('start-challenge').textContent = '🚀 NEUE CHALLENGE STARTEN!';
+                document.getElementById('start-challenge').textContent = '🚀 CHALLENGE STARTEN!';
                 gameData.todos = [];
                 renderTodos();
                 document.getElementById('timer').textContent = '00:00';
                 document.getElementById('timer').classList.remove('warning');
-            }, 3000);
-            
+            }, 2000);
+
             updateStats();
             renderDiamondModes();
             createMassiveConfetti();
         }
 
         function createConfetti() {
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#6bcf7f'];
-            for (let i = 0; i < 20; i++) {
+            const colors = ['#ffd700', '#4ecdc4', '#ff6b6b', '#45b7d1', '#6bcf7f'];
+            for (let i = 0; i < 25; i++) {
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
                 confetti.style.left = Math.random() * 100 + '%';
                 confetti.style.top = '-10px';
                 confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s linear forwards`;
+                confetti.style.animation = `confettiFall ${Math.random() * 2.5 + 2}s linear forwards`;
                 document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 4000);
+                setTimeout(() => confetti.remove(), 4500);
             }
         }
 
         function createMassiveConfetti() {
-            for (let i = 0; i < 100; i++) {
-                setTimeout(() => createConfetti(), i * 30);
+            for (let i = 0; i < 150; i++) {
+                setTimeout(() => createConfetti(), i * 20);
             }
         }
 
         function playSound() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+
+                osc.frequency.value = 820;
+                osc.type = 'sine';
+
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + 0.25);
+            } catch (e) { }
         }
 
         function startPomodoro() {
             if (pomodoroInterval) return;
-            
+
             pomodoroInterval = setInterval(() => {
                 pomodoroSeconds--;
                 const mins = Math.floor(pomodoroSeconds / 60);
                 const secs = pomodoroSeconds % 60;
-                document.getElementById('pomodoro-timer').textContent = 
+                document.getElementById('pomodoro-timer').textContent =
                     `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                
+
                 if (pomodoroSeconds <= 0) {
                     clearInterval(pomodoroInterval);
                     pomodoroInterval = null;
                     pomodoroSeconds = 1500;
                     gameData.pomodoros++;
-                    gameData.coins += 10;
+                    gameData.coins += 15;
                     updateStats();
                     renderTrophies();
                     createMassiveConfetti();
-                    alert('🎉 Pomodoro abgeschlossen! +10 Münzen!');
+                    alert('🎉 Pomodoro vollendet! +15 Münzen!');
                     document.getElementById('pomodoro-timer').textContent = '25:00';
                 }
             }, 1000);
@@ -700,6 +1222,20 @@
             pomodoroInterval = null;
             pomodoroSeconds = 1500;
             document.getElementById('pomodoro-timer').textContent = '25:00';
+        }
+
+        function openSettings() {
+            document.getElementById('settings-panel').classList.add('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-panel').classList.remove('open');
+        }
+
+        function setupSettingsSliders() {
+            document.getElementById('effect-intensity').addEventListener('input', function() {
+                document.getElementById('intensity-value').textContent = this.value;
+            });
         }
 
         document.getElementById('todo-input').addEventListener('keypress', (e) => {
