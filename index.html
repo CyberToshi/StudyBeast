@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Beast - Professional Edition</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -622,6 +625,167 @@
             font-size: 0.85em;
         }
 
+        /* ====== AUTHENTIFIZIERUNG STYLES ====== */
+        .auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .auth-screen.hidden {
+            display: none !important;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .auth-container h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-auth:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .toggle-auth button {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 700;
+            text-decoration: underline;
+            padding: 0;
+            margin-left: 5px;
+        }
+
+        .toggle-auth button:hover {
+            color: var(--secondary);
+        }
+
+        .auth-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .auth-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .auth-message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .user-logout {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: white;
+            margin-left: auto;
+        }
+
+        .user-logout span {
+            font-weight: 600;
+        }
+
+        .user-logout button {
+            background: linear-gradient(135deg, var(--accent), var(--warning));
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .user-logout button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
         .slider {
             width: 100%;
             height: 6px;
@@ -692,12 +856,67 @@
             }
         }
 
+        @keyframes floatFormula {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) translateX(var(--tx, 0)) rotate(360deg);
+            }
+        }
+
+        @keyframes spinFormula {
+            0% { transform: rotateZ(0deg); }
+            100% { transform: rotateZ(360deg); }
+        }
+
+        @keyframes pulseEffect {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+        }
+
         .confetti {
             position: fixed;
             width: 12px;
             height: 12px;
             pointer-events: none;
             z-index: 999;
+        }
+
+        .formula-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-weight: bold;
+            font-size: 1.5em;
+            animation: floatFormula 3s ease-out forwards;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+        }
+
+        .atom-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            animation: floatFormula 3s ease-out forwards;
+        }
+
+        .pulse-ring {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            border-radius: 50%;
+            border: 3px solid;
+            animation: pulseEffect 1s ease-out forwards;
         }
 
         @media (max-width: 768px) {
@@ -725,10 +944,65 @@
     </style>
 </head>
 <body>
+    <!-- ===== AUTH SCREEN ===== -->
+    <div class="auth-screen" id="auth-screen">
+        <div class="auth-container" id="auth-forms">
+            <!-- REGISTER FORM -->
+            <div id="register-form">
+                <h2>Registrierung</h2>
+                <div id="register-message"></div>
+                <form id="form-register">
+                    <div class="form-group">
+                        <label for="register-name">Benutzername</label>
+                        <input type="text" id="register-name" placeholder="Max Mustermann" required minlength="3" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Passwort</label>
+                        <input type="password" id="register-password" placeholder="••••••••" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password-confirm">Passwort bestätigen</label>
+                        <input type="password" id="register-password-confirm" placeholder="••••••••" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn-auth">Registrieren</button>
+                </form>
+                <div class="toggle-auth">
+                    Bereits registriert?
+                    <button type="button" id="btn-to-login">Jetzt anmelden</button>
+                </div>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="login-form" class="hidden">
+                <h2>Anmeldung</h2>
+                <div id="login-message"></div>
+                <form id="form-login">
+                    <div class="form-group">
+                        <label for="login-name">Benutzername</label>
+                        <input type="text" id="login-name" placeholder="Max Mustermann" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Passwort</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-auth">Anmelden</button>
+                </form>
+                <div class="toggle-auth">
+                    Noch kein Konto?
+                    <button type="button" id="btn-to-register">Jetzt registrieren</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🔥 STUDY BEAST 🔥</h1>
             <p>Dein Fokus-Kraftwerk mit Gamification</p>
+            <div class="user-logout hidden" id="user-logout-section">
+                <span>👤 <span id="current-username">User</span></span>
+                <button onclick="logoutUser()">Abmelden</button>
+            </div>
         </div>
 
         <div class="stats-bar">
@@ -813,7 +1087,11 @@
 
                 <div class="todo-list" id="todo-list"></div>
 
-                <button class="challenge-btn" id="start-challenge" onclick="startChallenge()">🚀 CHALLENGE STARTEN!</button>
+                <div style="display: flex; gap: 15px;">
+                    <button class="challenge-btn" style="flex: 1;" id="start-challenge" onclick="startChallenge()">🚀 CHALLENGE STARTEN!</button>
+                    <button class="challenge-btn" style="flex: 1; background: linear-gradient(135deg, #ff6b6b 0%, #f5576c 100%); display: none;" id="stop-challenge" onclick="stopChallenge()">⏹️ STOPP</button>
+                </div>
+                <div id="effect-container" style="position: fixed; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;"></div>
             </div>
         </div>
 
@@ -1094,7 +1372,8 @@
             if (!gameData.challengeActive) {
                 gameData.challengeActive = true;
                 challengeSeconds = 0;
-                document.getElementById('start-challenge').textContent = '⏸️ Challenge läuft...';
+                document.getElementById('start-challenge').style.display = 'none';
+                document.getElementById('stop-challenge').style.display = 'block';
 
                 challengeInterval = setInterval(() => {
                     challengeSeconds++;
@@ -1112,6 +1391,21 @@
             }
         }
 
+        function stopChallenge() {
+            if (gameData.challengeActive) {
+                gameData.challengeActive = false;
+                clearInterval(challengeInterval);
+                document.removeEventListener('keydown', handleSpacebar);
+                
+                document.getElementById('start-challenge').style.display = 'block';
+                document.getElementById('stop-challenge').style.display = 'none';
+                document.getElementById('timer').textContent = '00:00';
+                document.getElementById('timer').classList.remove('warning');
+                
+                alert('⏹️ Challenge abgebrochen!');
+            }
+        }
+
         function handleSpacebar(e) {
             if (e.code === 'Space' && gameData.challengeActive) {
                 e.preventDefault();
@@ -1121,11 +1415,197 @@
                     renderTodos();
                     createConfetti();
                     playSound();
+                    
+                    // Effekte basierend auf aktuellem Mode
+                    triggerModeEffect();
 
                     if (gameData.todos.every(t => t.completed)) {
                         endChallenge();
                     }
                 }
+            }
+        }
+
+        function triggerModeEffect() {
+            const currentMode = gameData.currentMode;
+            
+            if (currentMode.includes('Mathe')) {
+                createFloatingFormulas();
+            } else if (currentMode.includes('Chemie')) {
+                createAtomParticles();
+            } else if (currentMode.includes('Physik')) {
+                createPhysicsEffects();
+            } else if (currentMode.includes('Bio')) {
+                createDNAEffects();
+            } else if (currentMode.includes('Literatur')) {
+                createBookEffects();
+            } else if (currentMode.includes('Geschichte')) {
+                createHistoryEffects();
+            } else if (currentMode.includes('Sprachen')) {
+                createLanguageEffects();
+            }
+        }
+
+        function createFloatingFormulas() {
+            const formulas = ['∑', '∫', '√', '∞', '±', '≠', '×', '÷', '∂', '∆', 'π', 'φ', 'e', '∏', 'α', 'β', 'γ'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 8; i++) {
+                const formula = document.createElement('div');
+                const randomFormula = formulas[Math.floor(Math.random() * formulas.length)];
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 200;
+                
+                formula.className = 'formula-particle';
+                formula.textContent = randomFormula;
+                formula.style.left = startX + 'px';
+                formula.style.top = window.innerHeight + 'px';
+                formula.style.color = ['#ffd700', '#4ecdc4', '#45b7d1', '#6bcf7f'][Math.floor(Math.random() * 4)];
+                formula.style.fontSize = (Math.random() * 1.5 + 1.5) + 'em';
+                formula.style.setProperty('--tx', drift + 'px');
+                formula.style.animationDuration = (Math.random() * 1.5 + 2.5) + 's';
+                
+                container.appendChild(formula);
+                setTimeout(() => formula.remove(), 4500);
+            }
+        }
+
+        function createAtomParticles() {
+            const atoms = ['H', 'O', 'C', 'N', 'Ca', 'Na', 'Cl', 'S'];
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 6; i++) {
+                const atom = document.createElement('div');
+                const atomSymbol = atoms[Math.floor(Math.random() * atoms.length)];
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 250;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                atom.className = 'atom-particle';
+                atom.textContent = atomSymbol;
+                atom.style.left = startX + 'px';
+                atom.style.top = window.innerHeight + 'px';
+                atom.style.color = color;
+                atom.style.borderColor = color;
+                atom.style.setProperty('--tx', drift + 'px');
+                atom.style.animationDuration = (Math.random() * 1.5 + 2.5) + 's';
+                
+                container.appendChild(atom);
+                setTimeout(() => atom.remove(), 4500);
+            }
+        }
+
+        function createPhysicsEffects() {
+            const symbols = ['⚛️', '🔬', '⚙️', '🌌', '💫', '⚡'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 7; i++) {
+                const particle = document.createElement('div');
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 300;
+                
+                particle.className = 'formula-particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = startX + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.fontSize = '2.5em';
+                particle.style.setProperty('--tx', drift + 'px');
+                particle.style.animationDuration = (Math.random() * 1.5 + 2) + 's';
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 4500);
+            }
+        }
+
+        function createDNAEffects() {
+            const symbols = ['🧬', '🧪', '🦠', '🌿', '🍃', '🌱', '🦋'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 7; i++) {
+                const particle = document.createElement('div');
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 200;
+                
+                particle.className = 'formula-particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = startX + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.fontSize = '2em';
+                particle.style.setProperty('--tx', drift + 'px');
+                particle.style.animationDuration = (Math.random() * 1.5 + 2.5) + 's';
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 4500);
+            }
+        }
+
+        function createBookEffects() {
+            const symbols = ['📚', '📖', '✍️', '📝', '📄', '🖋️', '💭'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 6; i++) {
+                const particle = document.createElement('div');
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 150;
+                
+                particle.className = 'formula-particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = startX + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.fontSize = '2em';
+                particle.style.color = '#CD853F';
+                particle.style.setProperty('--tx', drift + 'px');
+                particle.style.animationDuration = (Math.random() * 1.5 + 2) + 's';
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 4500);
+            }
+        }
+
+        function createHistoryEffects() {
+            const symbols = ['🏛️', '📜', '⚔️', '👑', '🗿', '🏰', '⚱️'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 7; i++) {
+                const particle = document.createElement('div');
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 200;
+                
+                particle.className = 'formula-particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = startX + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.fontSize = '2em';
+                particle.style.setProperty('--tx', drift + 'px');
+                particle.style.animationDuration = (Math.random() * 1.5 + 2.5) + 's';
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 4500);
+            }
+        }
+
+        function createLanguageEffects() {
+            const languages = ['🇩🇪', '🇬🇧', '🇫🇷', '🇪🇸', '🇮🇹', '🇵🇹', '🗣️', '💬'];
+            const container = document.getElementById('effect-container');
+            
+            for (let i = 0; i < 7; i++) {
+                const particle = document.createElement('div');
+                const text = languages[Math.floor(Math.random() * languages.length)];
+                const startX = Math.random() * window.innerWidth;
+                const drift = (Math.random() - 0.5) * 200;
+                
+                particle.className = 'formula-particle';
+                particle.textContent = text;
+                particle.style.left = startX + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.fontSize = '2em';
+                particle.style.color = '#9B59B6';
+                particle.style.setProperty('--tx', drift + 'px');
+                particle.style.animationDuration = (Math.random() * 1.5 + 2) + 's';
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 4500);
             }
         }
 
@@ -1243,6 +1723,326 @@
         });
 
         initializeApp();
+    </script>
+
+    <!-- ===== AUTHENTIFIZIERUNGS-MODUL ===== -->
+    <script>
+        // ===== FIREBASE KONFIGURATION =====
+        // WICHTIG: Ersetzen Sie mit Ihren Firebase-Credentials!
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEXAMPLE",           // ← Ihre apiKey
+            authDomain: "projekt.firebaseapp.com",
+            projectId: "projekt-12345",        // ← Ihre projectId
+            storageBucket: "projekt.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcd1234"
+        };
+
+        // Firebase initialisieren
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // ===== AUTHENTIFIZIERUNGS-VARIABLEN =====
+        let currentUser = null;
+        const SALT_ROUNDS = 10;
+
+        // ===== HILFSFUNKTIONEN =====
+        function showMessage(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="auth-message ${type}">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 5000);
+        }
+
+        async function hashPassword(password) {
+            return await bcrypt.hash(password, SALT_ROUNDS);
+        }
+
+        async function comparePassword(password, hash) {
+            return await bcrypt.compare(password, hash);
+        }
+
+        async function isUsernameAvailable(username) {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('username', '==', username.toLowerCase())
+                    .get();
+                return snapshot.empty;
+            } catch (error) {
+                console.error('Fehler beim Prüfen des Benutzernamens:', error);
+                return false;
+            }
+        }
+
+        async function getUserByUsername(username) {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('username', '==', username.toLowerCase())
+                    .get();
+                
+                if (snapshot.empty) return null;
+                
+                const doc = snapshot.docs[0];
+                return {
+                    id: doc.id,
+                    ...doc.data()
+                };
+            } catch (error) {
+                console.error('Fehler beim Abrufen des Benutzers:', error);
+                return null;
+            }
+        }
+
+        function saveSession(user) {
+            const sessionData = {
+                id: user.id,
+                username: user.username,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('currentSession', JSON.stringify(sessionData));
+        }
+
+        function getSession() {
+            const session = localStorage.getItem('currentSession');
+            return session ? JSON.parse(session) : null;
+        }
+
+        function clearSession() {
+            localStorage.removeItem('currentSession');
+        }
+
+        // ===== REGISTRIERUNG =====
+        document.getElementById('form-register').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('register-name').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-password-confirm').value;
+
+            // Validierung
+            if (password !== confirmPassword) {
+                showMessage('register-message', '❌ Passwörter stimmen nicht überein!', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('register-message', '❌ Passwort muss mindestens 6 Zeichen lang sein!', 'error');
+                return;
+            }
+
+            if (username.length < 3) {
+                showMessage('register-message', '❌ Benutzername muss mindestens 3 Zeichen lang sein!', 'error');
+                return;
+            }
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ Wird registriert...';
+
+            try {
+                const available = await isUsernameAvailable(username);
+                if (!available) {
+                    showMessage('register-message', '❌ Benutzername existiert bereits!', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    return;
+                }
+
+                const passwordHash = await hashPassword(password);
+
+                const newUser = {
+                    username: username.toLowerCase(),
+                    usernameDisplay: username,
+                    passwordHash: passwordHash,
+                    score: 0,
+                    level: 1,
+                    progress: 0,
+                    coins: 0,
+                    diamonds: 0,
+                    pomodoros: 0,
+                    createdAt: new Date(),
+                    lastLogin: null
+                };
+
+                const docRef = await db.collection('users').add(newUser);
+
+                showMessage('register-message', '✅ Registrierung erfolgreich! Sie werden weitergeleitet...', 'success');
+
+                setTimeout(() => {
+                    currentUser = {
+                        id: docRef.id,
+                        ...newUser
+                    };
+                    saveSession(currentUser);
+                    showMainApp();
+                    document.getElementById('form-register').reset();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Registrierungsfehler:', error);
+                showMessage('register-message', '❌ Ein Fehler ist aufgetreten. Versuchen Sie es später erneut.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        // ===== LOGIN =====
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('login-name').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if (!username || !password) {
+                showMessage('login-message', '❌ Benutzername und Passwort erforderlich!', 'error');
+                return;
+            }
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ Wird angemeldet...';
+
+            try {
+                const user = await getUserByUsername(username);
+                if (!user) {
+                    showMessage('login-message', '❌ Benutzer oder Passwort falsch!', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    return;
+                }
+
+                const isPasswordValid = await comparePassword(password, user.passwordHash);
+                if (!isPasswordValid) {
+                    showMessage('login-message', '❌ Benutzer oder Passwort falsch!', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    return;
+                }
+
+                await db.collection('users').doc(user.id).update({
+                    lastLogin: new Date()
+                });
+
+                currentUser = user;
+                saveSession(user);
+
+                showMessage('login-message', '✅ Anmeldung erfolgreich!', 'success');
+
+                setTimeout(() => {
+                    showMainApp();
+                    document.getElementById('form-login').reset();
+                }, 1000);
+
+            } catch (error) {
+                console.error('Login-Fehler:', error);
+                showMessage('login-message', '❌ Ein Fehler ist aufgetreten.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        // ===== UI-FUNKTIONEN =====
+        function showMainApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('user-logout-section').classList.remove('hidden');
+            document.getElementById('current-username').textContent = currentUser.usernameDisplay;
+            
+            // Benutzerdaten in die App laden
+            gameData.coins = currentUser.coins || 0;
+            gameData.diamonds = currentUser.diamonds || 0;
+            gameData.pomodoros = currentUser.pomodoros || 0;
+            updateStats();
+            renderTrophies();
+            renderDiamondModes();
+        }
+
+        function showLoginForm() {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+
+        function showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        // ===== ABMELDEN =====
+        function logoutUser() {
+            currentUser = null;
+            clearSession();
+            
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('user-logout-section').classList.add('hidden');
+            
+            gameData.coins = 0;
+            gameData.diamonds = 0;
+            gameData.pomodoros = 0;
+            updateStats();
+
+            document.getElementById('form-login').reset();
+            document.getElementById('form-register').reset();
+            showRegisterForm();
+        }
+
+        // ===== FORM-TOGGLE =====
+        document.getElementById('btn-to-login').addEventListener('click', showLoginForm);
+        document.getElementById('btn-to-register').addEventListener('click', showRegisterForm);
+
+        // ===== SESSION BEI SEITENLADUNG PRÜFEN =====
+        async function checkSession() {
+            const session = getSession();
+            if (session) {
+                try {
+                    const user = await db.collection('users').doc(session.id).get();
+                    if (user.exists) {
+                        currentUser = {
+                            id: user.id,
+                            ...user.data()
+                        };
+                        showMainApp();
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Wiederherstellen der Session:', error);
+                    clearSession();
+                }
+            }
+        }
+
+        // ===== DATEN SPEICHERN / ABRUFEN =====
+        async function updateUserData(updates) {
+            if (!currentUser) {
+                console.error('Kein Benutzer angemeldet');
+                return false;
+            }
+
+            try {
+                await db.collection('users').doc(currentUser.id).update(updates);
+                Object.assign(currentUser, updates);
+                return true;
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren der Daten:', error);
+                return false;
+            }
+        }
+
+        // ===== ÖFFENTLICHE FUNKTIONEN =====
+        window.Auth = {
+            getCurrentUser: () => currentUser,
+            isLoggedIn: () => currentUser !== null,
+            updateUserData: updateUserData
+        };
+
+        // Session beim Laden prüfen
+        window.addEventListener('load', checkSession);
+
+        console.log('✅ Authentifizierungs-Modul geladen');
     </script>
 </body>
 </html>
