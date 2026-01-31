@@ -2,2826 +2,983 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <title>Study Beast - Premium Edition</title>
-    <!-- bcrypt ZUERST laden -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-    <!-- Dann Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LernPlaner Pro</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
+        /* ===== MODERN THEME ===== */
+        :root {
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --secondary-light: #d1fae5;
+            --accent: #8b5cf6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-secondary: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --bg-card: #ffffff;
+            
+            --border: #e5e7eb;
+            --border-light: #f3f4f6;
+            
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+        }
+
+        /* ===== BASE STYLES ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            /* Premium Glassmorphism Colors */
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --accent-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --success-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            --warning-gradient: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
-            
-            /* Glass Effects */
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --glass-blur: blur(20px);
-            
-            /* Dynamic Colors */
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --text-accent: #ffd700;
-        }
-
         body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--primary-gradient);
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Animated Background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-            animation: backgroundFloat 20s ease-in-out infinite;
-            z-index: -1;
-        }
-
-        @keyframes backgroundFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-20px) rotate(1deg); }
-            66% { transform: translateY(10px) rotate(-1deg); }
-        }
-
-        /* Floating Particles */
-        .particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .particle::before {
-            content: '';
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            animation: particleFloat 15s linear infinite;
-        }
-
-        @keyframes particleFloat {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        /* ====== DISCLAIMER MODAL ====== */
-        .disclaimer-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            backdrop-filter: var(--glass-blur);
-        }
-
-        .disclaimer-modal {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            max-width: min(700px, 90vw);
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: clamp(20px, 5vw, 40px);
-            box-shadow: var(--glass-shadow);
-            animation: modalSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            margin: 20px;
-        }
-
-        .disclaimer-modal h2 {
-            color: var(--text-accent);
-            margin-bottom: 25px;
-            font-size: clamp(1.2em, 4vw, 1.8em);
-            text-align: center;
-            font-weight: 700;
-        }
-
-        .disclaimer-content {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            font-size: clamp(0.85em, 2.5vw, 0.95em);
-        }
-
-        .disclaimer-content p {
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
-        .disclaimer-content p:first-child {
-            font-weight: 600;
-            color: var(--text-accent);
-        }
-
-        .disclaimer-checkbox-group {
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            border: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .disclaimer-checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--text-accent);
-            transform: scale(1.2);
-        }
-
-        .disclaimer-checkbox-group label {
-            cursor: pointer;
-            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
-            font-size: clamp(0.9em, 2.5vw, 1em);
-            user-select: none;
-            flex: 1;
+            line-height: 1.5;
         }
 
-        .disclaimer-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-accept {
-            flex: 1;
-            padding: 16px 24px;
-            border: none;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: clamp(0.9em, 2.5vw, 1em);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-accept:not(:disabled) {
-            background: var(--accent-gradient);
-            color: white;
-            box-shadow: 0 8px 25px rgba(250, 112, 154, 0.4);
-        }
-
-        .btn-accept:not(:disabled):hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(250, 112, 154, 0.6);
-        }
-
-        .btn-accept:disabled {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.5);
-            cursor: not-allowed;
-        }
-
-        /* ====== AUTH SCREEN ====== */
-        .auth-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--primary-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
-        }
-
-        .auth-screen.hidden {
-            display: none !important;
-        }
-
-        .auth-container {
-            width: 100%;
-            max-width: min(420px, 90vw);
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            padding: clamp(25px, 6vw, 45px);
-            border-radius: 24px;
-            box-shadow: var(--glass-shadow);
-            animation: authSlideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .auth-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shimmer 3s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        .auth-logo {
-            text-align: center;
-            font-size: clamp(2.5em, 8vw, 3.5em);
-            margin-bottom: 20px;
-            animation: logoFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(5deg); }
-        }
-
-        .auth-container h2 {
-            text-align: center;
-            color: var(--text-primary);
-            margin-bottom: 10px;
-            font-size: clamp(1.4em, 5vw, 1.8em);
-            font-weight: 700;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .auth-subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-            font-size: clamp(0.85em, 3vw, 0.95em);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: clamp(0.85em, 3vw, 0.95em);
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 16px 20px;
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            font-size: clamp(14px, 4vw, 16px);
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: inherit;
-        }
-
-        .form-group input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--text-accent);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn-auth {
-            width: 100%;
-            padding: 18px 24px;
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: clamp(0.95em, 3.5vw, 1.05em);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-top: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-auth::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-auth:hover::before {
-            left: 100%;
-        }
-
-        .btn-auth:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(250, 112, 154, 0.6);
-        }
-
-        .btn-auth:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-auth:active {
-            transform: scale(0.98);
-        }
-
-        .toggle-auth {
-            text-align: center;
-            margin-top: 25px;
-            color: var(--text-secondary);
-            font-size: clamp(0.85em, 3vw, 0.95em);
-        }
-
-        .toggle-auth p {
-            margin: 0;
-        }
-
-        .toggle-auth button {
-            background: none;
-            border: none;
-            color: var(--text-accent);
-            cursor: pointer;
-            font-weight: 700;
-            text-decoration: underline;
-            padding: 0;
-            margin-left: 5px;
-            transition: all 0.3s ease;
-            font-size: inherit;
-        }
-
-        .toggle-auth button:hover {
-            color: var(--text-primary);
-            text-shadow: 0 0 10px var(--text-accent);
-        }
-
-        .auth-message {
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: clamp(0.85em, 3vw, 0.95em);
-            animation: messageSlide 0.3s ease-out;
-            backdrop-filter: blur(10px);
-        }
-
-        .auth-message.error {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-        }
-
-        .auth-message.success {
-            background: rgba(78, 205, 196, 0.2);
-            color: #4ecdc4;
-            border: 1px solid rgba(78, 205, 196, 0.3);
-        }
-
-        /* ====== MAIN APP STYLES ====== */
+        /* ===== LAYOUT CONTAINERS ===== */
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 10;
+            padding: 0 1rem;
         }
 
-        .header {
-            text-align: center;
-            color: var(--text-primary);
-            margin-bottom: 40px;
-            animation: headerFloat 0.8s ease-out;
+        /* ===== NAVIGATION ===== */
+        .navbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
         }
 
-        .header h1 {
-            font-size: clamp(2em, 8vw, 3.2em);
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-            font-weight: 900;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: titleGlow 2s ease-in-out infinite alternate;
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
 
-        @keyframes titleGlow {
-            0% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
-            100% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
-        }
-
-        .header p {
-            font-size: clamp(0.9em, 3.5vw, 1.1em);
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .user-logout {
+        .nav-brand {
             display: flex;
             align-items: center;
-            gap: 15px;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            padding: 12px 20px;
-            border-radius: 16px;
-            color: var(--text-primary);
-            margin: 20px auto 0;
-            width: fit-content;
-            box-shadow: var(--glass-shadow);
+            gap: 0.75rem;
         }
 
-        .user-logout.hidden {
-            display: none;
-        }
-
-        .user-logout span {
-            font-weight: 600;
-            font-size: clamp(0.85em, 3vw, 0.95em);
-        }
-
-        .user-logout button {
-            background: var(--warning-gradient);
-            color: white;
-            border: none;
-            padding: 8px 16px;
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-primary);
             border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: clamp(0.8em, 2.5vw, 0.9em);
-            transition: all 0.3s ease;
-        }
-
-        .user-logout button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-        }
-
-        .stats-bar {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: clamp(20px, 5vw, 30px);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
-            gap: clamp(20px, 5vw, 30px);
-            margin-bottom: 40px;
-            box-shadow: var(--glass-shadow);
-            animation: statsSlide 0.8s ease-out 0.2s both;
-        }
-
-        .stat-item {
-            text-align: center;
-            color: var(--text-primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 15px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.6s;
-        }
-
-        .stat-item:hover::before {
-            left: 100%;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-5px) scale(1.05);
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .stat-value {
-            font-size: clamp(1.8em, 6vw, 2.5em);
-            font-weight: 900;
-            display: block;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-            margin-bottom: 8px;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            font-size: clamp(0.8em, 3vw, 0.95em);
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .tab-buttons {
             display: flex;
-            gap: clamp(10px, 3vw, 15px);
-            margin-bottom: 30px;
-            animation: tabsSlide 0.8s ease-out 0.4s both;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--text-tertiary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
         }
 
-        .tab-btn {
-            flex: 1;
-            min-width: min(150px, 30vw);
-            padding: clamp(12px, 4vw, 16px) clamp(15px, 4vw, 20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            font-size: clamp(0.85em, 3vw, 1.05em);
-            font-weight: 700;
-            cursor: pointer;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            color: var(--text-primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
         }
 
-        .tab-btn::before {
-            content: '';
+        .card:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* ===== VIDEO CONTAINER ===== */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: var(--radius-sm);
+            margin: 1rem 0;
+            background: #000;
+        }
+
+        .video-container iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--accent-gradient);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            border: none;
         }
 
-        .tab-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        /* ===== DASHBOARD ===== */
+        .dashboard-header {
+            padding: 2rem 0;
         }
 
-        .tab-btn.active {
-            background: var(--accent-gradient);
-            box-shadow: 0 8px 30px rgba(250, 112, 154, 0.4);
-            color: white;
+        .header-title {
+            margin-bottom: 0.5rem;
         }
 
-        .tab-btn.active::before {
-            opacity: 1;
+        .header-subtitle {
+            color: var(--text-secondary);
         }
 
-        .content-section {
-            display: none;
-            animation: contentFade 0.5s ease-out;
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
-        .content-section.active {
-            display: block;
+        /* ===== PLAN CARDS ===== */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
-        .path-container {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: clamp(25px, 6vw, 35px);
-            box-shadow: var(--glass-shadow);
-            margin-bottom: 25px;
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .path-container::before {
+        .plan-card::before {
             content: '';
             position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: var(--accent-gradient);
-            border-radius: 24px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
         }
 
-        .path-container:hover::before {
-            opacity: 0.1;
+        .plan-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
-        .path-header {
+        .plan-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
+            align-items: flex-start;
+            margin-bottom: 1rem;
         }
 
-        .path-title {
-            color: var(--text-primary);
-            font-size: clamp(1.4em, 5vw, 2em);
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            margin: 0;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .settings-gear {
-            width: clamp(40px, 8vw, 50px);
-            height: clamp(40px, 8vw, 50px);
-            border-radius: 50%;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(1.2em, 4vw, 1.5em);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text-primary);
-        }
-
-        .settings-gear:hover {
-            transform: rotate(90deg) scale(1.1);
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        }
-
-        /* Responsive Design Improvements */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .tab-buttons {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .tab-btn {
-                min-width: unset;
-                flex: none;
-            }
-            
-            .path-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 20px;
-            }
-            
-            .stats-bar {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .auth-container {
-                margin: 10px;
-                padding: 20px;
-            }
-            
-            .disclaimer-modal {
-                margin: 10px;
-                padding: 20px;
-            }
-            
-            .disclaimer-checkbox-group {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-        }
-
-        /* Animations */
-        @keyframes modalSlideUp {
-            from {
-                transform: translateY(50px) scale(0.9);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
-        }
-
-        @keyframes authSlideIn {
-            from {
-                transform: translateY(30px) scale(0.95);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
-        }
-
-        @keyframes headerFloat {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes statsSlide {
-            from {
-                transform: translateX(-30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes tabsSlide {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes contentFade {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes messageSlide {
-            from {
-                transform: translateX(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Continue with the rest of the styles... */
-        .path-overview {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .path-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            color: var(--text-primary);
-            font-size: clamp(0.85em, 3vw, 0.95em);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .progress-rail {
-            position: relative;
-            height: clamp(30px, 6vw, 40px);
-            background: rgba(255, 255, 255, 0.1);
+        .plan-folder {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-tertiary);
             border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .progress-beam {
-            height: 100%;
-            background: var(--accent-gradient);
-            border-radius: 18px;
-            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 15px;
-            color: white;
-            font-weight: 800;
-            font-size: clamp(0.8em, 2.5vw, 0.9em);
-        }
-
-        .progress-beam::after {
-            content: '';
-            position: absolute;
-            right: -5px;
-            width: 15px;
-            height: 15px;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-            animation: beamPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes beamPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.2); }
-        }
-
-        .milestone-rail {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            position: relative;
-            height: 60px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .milestone {
-            flex: 1;
-            min-width: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .milestone-marker {
-            width: clamp(30px, 6vw, 35px);
-            height: clamp(30px, 6vw, 35px);
-            border-radius: 50%;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 2px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(1em, 3vw, 1.2em);
-            margin-bottom: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text-primary);
-        }
-
-        .milestone:hover .milestone-marker {
-            transform: scale(1.3);
-            background: var(--accent-gradient);
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
-            color: white;
-        }
-
-        .milestone-label {
+            font-size: 0.75rem;
             color: var(--text-secondary);
-            font-size: clamp(0.7em, 2.5vw, 0.8em);
-            text-align: center;
-            max-width: 80px;
-            opacity: 0.8;
-            transition: all 0.3s ease;
-            font-weight: 500;
+            margin-bottom: 0.5rem;
         }
 
-        .milestone:hover .milestone-label {
-            opacity: 1;
-            color: var(--text-primary);
-        }
-
-        .milestone-detail {
-            position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: clamp(0.7em, 2vw, 0.75em);
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-            z-index: 10;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .milestone:hover .milestone-detail {
-            opacity: 1;
-            transform: translateX(-50%) translateY(-5px);
-        }
-
-        .trophy-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(min(140px, 45vw), 1fr));
-            gap: clamp(15px, 4vw, 20px);
-            margin-top: 25px;
-        }
-
-        .trophy-item {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: clamp(15px, 4vw, 20px);
-            text-align: center;
-            color: var(--text-primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .trophy-item::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transform: rotate(45deg);
-            opacity: 0;
-            transition: opacity 0.6s;
-        }
-
-        .trophy-item:hover::before {
-            opacity: 1;
-        }
-
-        .trophy-item:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-            border-color: var(--text-accent);
-        }
-
-        .trophy-item.locked {
-            opacity: 0.6;
-            background: rgba(100, 100, 100, 0.1);
-        }
-
-        .trophy-item.unlocked {
-            background: var(--accent-gradient);
-            color: white;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-            animation: unlockPulse 0.8s ease-out;
-        }
-
-        @keyframes unlockPulse {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .trophy-icon {
-            font-size: clamp(2.5em, 8vw, 3em);
-            margin-bottom: 10px;
-            display: block;
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-        }
-
-        .trophy-name {
-            font-weight: 700;
-            font-size: clamp(0.8em, 3vw, 0.95em);
-            margin-bottom: 8px;
-        }
-
-        .trophy-requirement {
-            font-size: clamp(0.75em, 2.5vw, 0.85em);
-            opacity: 0.85;
-        }
-
-        /* Challenge and Pomodoro Containers */
-        .challenge-container, .pomodoro-container {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: clamp(25px, 6vw, 35px);
-            box-shadow: var(--glass-shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .challenge-container::before, .pomodoro-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--accent-gradient);
-            opacity: 0.05;
-            pointer-events: none;
-        }
-
-        .mode-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(180px, 40vw), 1fr));
-            gap: clamp(10px, 3vw, 15px);
-            margin-bottom: 30px;
-        }
-
-        .mode-btn {
-            padding: clamp(12px, 3vw, 14px) clamp(15px, 4vw, 20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            color: var(--text-primary);
-            cursor: pointer;
+        .plan-title {
+            font-size: 1.125rem;
             font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: clamp(0.8em, 2.5vw, 0.95em);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mode-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--secondary-gradient);
-            transition: left 0.3s ease;
-            z-index: -1;
-        }
-
-        .mode-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .mode-btn:hover::before {
-            left: 0;
-        }
-
-        .mode-btn.active {
-            background: var(--secondary-gradient);
-            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
-            color: white;
-        }
-
-        .mode-btn.active::before {
-            left: 0;
-        }
-
-        .timer-display {
-            font-size: clamp(3em, 12vw, 5.5em);
-            text-align: center;
             color: var(--text-primary);
-            font-weight: 900;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
-            margin: clamp(30px, 8vw, 40px) 0;
-            font-family: 'Courier New', monospace;
-            letter-spacing: clamp(4px, 2vw, 8px);
-            font-variant-numeric: tabular-nums;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 0.25rem;
         }
 
-        .timer-display.warning {
-            animation: timerShake 0.5s infinite;
-            filter: drop-shadow(0 0 20px #ff6b6b);
-        }
-
-        @keyframes timerShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .input-group {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .todo-input {
-            flex: 1;
-            min-width: min(250px, 100%);
-            padding: clamp(14px, 4vw, 16px) clamp(16px, 4vw, 18px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            font-size: clamp(14px, 3.5vw, 16px);
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        .todo-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .todo-input:focus {
-            outline: none;
-            border-color: var(--text-accent);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .todo-list {
-            margin: 25px 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .todo-item {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            padding: clamp(12px, 3vw, 16px);
-            border-radius: 12px;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: clamp(0.85em, 3vw, 0.95em);
-        }
-
-        .todo-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .todo-item.completed {
-            background: rgba(78, 205, 196, 0.2);
-            text-decoration: line-through;
-            opacity: 0.7;
-            border-color: #4ecdc4;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            cursor: pointer;
-            font-size: clamp(0.8em, 2.5vw, 0.9em);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-small:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        .challenge-btn {
-            width: 100%;
-            padding: clamp(16px, 4vw, 18px) clamp(20px, 5vw, 24px);
-            border: none;
-            border-radius: 16px;
-            font-size: clamp(1em, 3.5vw, 1.15em);
-            font-weight: 700;
-            cursor: pointer;
-            background: var(--accent-gradient);
-            color: white;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 25px rgba(250, 112, 154, 0.4);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .challenge-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .challenge-btn:hover::before {
-            left: 100%;
-        }
-
-        .challenge-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 35px rgba(250, 112, 154, 0.6);
-        }
-
-        .challenge-btn:active {
-            transform: scale(0.98);
-        }
-
-        .button-group {
-            display: flex;
-            gap: clamp(10px, 3vw, 15px);
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .button-group .challenge-btn {
-            flex: 1;
-            min-width: min(200px, 100%);
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            position: fixed;
-            right: -100%;
-            top: 0;
-            width: min(380px, 100vw);
-            height: 100vh;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border-left: 1px solid var(--glass-border);
-            box-shadow: -8px 0 30px rgba(0, 0, 0, 0.3);
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            overflow-y: auto;
-            padding: clamp(20px, 5vw, 30px);
-        }
-
-        .settings-panel.open {
-            right: 0;
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            color: var(--text-primary);
-        }
-
-        .settings-header h2 {
-            font-size: clamp(1.2em, 4vw, 1.5em);
-            font-weight: 700;
-        }
-
-        .close-settings {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            font-size: clamp(1.2em, 4vw, 1.5em);
-            cursor: pointer;
-            width: clamp(35px, 8vw, 40px);
-            height: clamp(35px, 8vw, 40px);
-            border-radius: 50%;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .close-settings:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(90deg) scale(1.1);
-        }
-
-        .setting-group {
-            margin-bottom: 25px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .setting-label {
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: block;
-            font-size: clamp(0.85em, 3vw, 0.95em);
-        }
-
-        .setting-value {
+        .plan-subject {
             color: var(--text-secondary);
-            font-size: clamp(0.8em, 2.5vw, 0.85em);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
         }
 
-        .slider {
-            width: 100%;
+        .plan-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .plan-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .plan-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .plan-progress {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
             height: 6px;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.2);
-            outline: none;
-            -webkit-appearance: none;
-            margin: 10px 0;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
         }
 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--accent-gradient);
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 3px;
+            transition: width 0.6s ease;
         }
 
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--accent-gradient);
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        .plan-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Particle System */
-        .particles-container {
+        /* ===== MODALS ===== */
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* Confetti and Effects */
-        .confetti {
-            position: fixed;
-            width: 12px;
-            height: 12px;
-            pointer-events: none;
-            z-index: 999;
-            animation: confettiFall 3s linear forwards;
-        }
-
-        @keyframes confettiFall {
-            to {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-
-        .formula-particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 999;
-            font-weight: bold;
-            font-size: clamp(1.2em, 4vw, 1.5em);
-            animation: floatFormula 3s ease-out forwards;
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
-        }
-
-        .atom-particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 999;
-            width: clamp(25px, 6vw, 30px);
-            height: clamp(25px, 6vw, 30px);
-            border-radius: 50%;
-            border: 2px solid;
-            display: flex;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            animation: floatFormula 3s ease-out forwards;
-            font-size: clamp(0.8em, 3vw, 1em);
+            z-index: 1000;
+            padding: 1rem;
         }
 
-        @keyframes floatFormula {
-            0% {
-                opacity: 1;
-                transform: translateY(0) translateX(0) rotate(0deg);
-            }
-            100% {
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
                 opacity: 0;
-                transform: translateY(-100vh) translateX(var(--tx, 0)) rotate(360deg);
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        /* Enhanced Mobile Responsiveness */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+            cursor: pointer;
+        }
+
+        /* ===== FORMS ===== */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* ===== EMPTY STATES ===== */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            margin: 2rem 0;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .text-muted { color: var(--text-secondary); }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .w-full { width: 100%; }
+        .hidden { display: none; }
+
+        /* ===== PAGES ===== */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header {
-                margin-bottom: 30px;
-            }
-            
-            .stats-bar {
-                padding: 20px 15px;
-                gap: 15px;
-            }
-            
-            .tab-buttons {
-                gap: 8px;
-                margin-bottom: 20px;
-            }
-            
-            .path-container, .challenge-container, .pomodoro-container {
-                padding: 20px 15px;
-                margin-bottom: 20px;
-            }
-            
-            .trophy-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 12px;
-            }
-            
-            .mode-selector {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 10px;
-            }
-            
-            .input-group {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .todo-input {
-                min-width: unset;
-            }
-            
-            .button-group {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .button-group .challenge-btn {
-                min-width: unset;
-            }
-            
-            .milestone-rail {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 15px;
-            }
-            
-            .milestone {
-                min-width: 60px;
-                flex: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .trophy-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-            
-            .trophy-item {
-                padding: 12px 8px;
-            }
-            
-            .mode-selector {
+            .plans-grid {
                 grid-template-columns: 1fr;
             }
             
-            .path-header {
-                gap: 15px;
+            .controls-row {
+                flex-direction: column;
             }
             
-            .settings-panel {
-                padding: 15px;
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-actions {
+                width: 100%;
+                justify-content: center;
             }
         }
 
-        /* Print Styles */
-        @media print {
-            .auth-screen,
-            .disclaimer-overlay,
-            .settings-panel {
-                display: none !important;
-            }
-            
-            body {
-                background: white !important;
-                color: black !important;
-            }
-            
-            .container {
-                max-width: none !important;
-                padding: 0 !important;
-            }
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
         }
 
-        /* High Contrast Mode */
-        @media (prefers-contrast: high) {
-            :root {
-                --glass-bg: rgba(255, 255, 255, 0.2);
-                --glass-border: rgba(255, 255, 255, 0.4);
-                --text-primary: #ffffff;
-                --text-secondary: #ffffff;
-            }
+        .notification.show {
+            transform: translateX(0);
         }
 
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
+        .notification.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .notification.info {
+            border-left: 4px solid var(--info);
+        }
+
+        /* ===== VIDEO PREVIEW ===== */
+        .video-preview-container {
+            margin-top: 1rem;
+        }
+
+        .video-preview {
+            background: #000;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        /* ===== DROP ZONE ===== */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: var(--bg-tertiary);
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
         }
     </style>
 </head>
 <body>
-    <!-- Particles Container -->
-    <div class="particles-container" id="particles-container"></div>
-
-    <!-- ===== DISCLAIMER MODAL ===== -->
-    <div class="disclaimer-overlay" id="disclaimer-overlay">
-        <div class="disclaimer-modal">
-            <h2>⚠️ Wichtige Hinweise</h2>
-            <div class="disclaimer-content">
-                <p>Diese Website ist ein privates, nicht-kommerzielles Test- und Experimentierprojekt.</p>
-                
-                <p>Sie dient ausschließlich dem technischen Ausprobieren von Funktionen und stellt keinen produktiven, dauerhaften oder sicherheitsrelevanten Online-Dienst dar.</p>
-                <p>Die Nutzung der Website ist nur unter der Voraussetzung gestattet, dass keine echten personenbezogenen Daten eingegeben werden. Insbesondere dürfen keine Klarnamen, realen Identitäten, E-Mail-Adressen, Passwörter aus anderen Diensten, Kontaktinformationen oder sonstige personenbezogene Inhalte verwendet werden.</p>
-                <p>Die eingegebenen Namen dienen ausschließlich als technische Kennung und haben keinerlei Bezug zu realen Personen.</p>
-                <p>Die Anmeldefunktion dient ausschließlich der technischen Trennung von Testdaten. Trotz technischer Schutzmaßnahmen (z. B. Hashing) besteht kein Anspruch auf Datensicherheit, Verfügbarkeit oder Vertraulichkeit. Es wird ausdrücklich davor gewarnt, Passwörter zu verwenden, die außerhalb dieses Testprojekts genutzt werden.</p>
-                <p>Es wird keinerlei Zusicherung hinsichtlich Datensicherheit, dauerhafter Speicherung, Integrität der Daten, Zugriffsschutz oder Fehlerfreiheit gegeben. Daten können jederzeit geändert, gelöscht, zurückgesetzt oder unbeabsichtigt verloren gehen.</p>
-                <p>Die Website verwendet kein Tracking, keine Analyse-Tools, keine Werbung und keine Profilbildung. Es findet keine Weitergabe von Daten an Dritte statt.</p>
-                <p>Aufgrund der experimentellen Natur kann nicht ausgeschlossen werden, dass gespeicherte Testdaten unter Umständen technisch einsehbar, veränderbar oder löschbar sind. Durch die Nutzung wird anerkannt, dass es sich um ein unsicheres Testumfeld handelt.</p>
-                <p>Die Nutzung der Website erfolgt freiwillig, unentgeltlich und begründet kein Vertragsverhältnis. Es handelt sich nicht um ein Angebot im rechtlichen Sinne und nicht um eine professionelle Dienstleistung.</p>
-                <p>Die Nutzung erfolgt auf eigenes Risiko. Für Schäden materieller oder immaterieller Art, die aus der Nutzung oder Nichtnutzung der Website entstehen, wird keine Haftung übernommen, soweit gesetzlich zulässig.</p>
-                <p>Mit der Nutzung der Website wird bestätigt, dass diese Hinweise gelesen, verstanden und akzeptiert wurden.</p>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <div class="logo">📚</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 1.125rem;">LernPlaner Pro</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Dein intelligenter Lernbegleiter</div>
+                </div>
             </div>
-            <div class="disclaimer-checkbox-group">
-                <input type="checkbox" id="disclaimer-checkbox">
-                <label for="disclaimer-checkbox">Ich habe die Hinweise gelesen und akzeptiert</label>
-            </div>
-            <div class="disclaimer-buttons">
-                <button class="btn-accept" id="btn-accept-disclaimer" disabled>
-                    Verstanden & Fortfahren
+            <div class="nav-actions">
+                <button class="btn btn-secondary" onclick="window.showPage('dashboard-page')">
+                    📊 Dashboard
+                </button>
+                <button class="btn btn-secondary" onclick="window.goToEditor()">
+                    ✏️ Editor
+                </button>
+                <button class="btn btn-primary" onclick="window.manualSave()">
+                    💾 Speichern
                 </button>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- ===== AUTH SCREEN ===== -->
-    <div class="auth-screen hidden" id="auth-screen">
-        <div class="auth-container" id="auth-forms">
-            <!-- LOGIN FORM -->
-            <div id="login-form">
-                <div class="auth-logo">🦁</div>
-                <h2>Anmelden</h2>
-                <p class="auth-subtitle">Willkommen zurück, Champion!</p>
-                <div id="login-message"></div>
-                <form id="form-login">
-                    <div class="form-group">
-                        <label for="login-name">Benutzername</label>
-                        <input type="text" id="login-name" placeholder="z.B. TestUser123" required>
+    <main class="container">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page active">
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="header-title">Deine Lernpläne</h1>
+                    <p class="header-subtitle">Verwalte und organisiere deine Lerninhalte</p>
+                </div>
+                
+                <div class="controls-row">
+                    <div style="min-width: 200px;">
+                        <select id="folderSelect" class="form-select" onchange="window.onFolderChange(this.value)">
+                            <option value="Alle">Alle Ordner</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="login-password">Passwort</label>
-                        <input type="password" id="login-password" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn-auth">🔓 Anmelden</button>
-                </form>
-                <div class="toggle-auth">
-                    <p>Noch kein Konto? <button type="button" id="btn-to-register">Registrieren</button></p>
+                    
+                    <button class="btn btn-secondary" onclick="window.showFolderManager()">
+                        📁 Ordner
+                    </button>
+                    <button class="btn btn-primary" onclick="window.goToEditor()">
+                        ➕ Neuer Plan
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.showImportZone()">
+                        📥 Import
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.exportBackup()">
+                        💾 Backup
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.showKIPrompt()">
+                        🤖 KI-Assistent
+                    </button>
                 </div>
             </div>
 
-            <!-- REGISTER FORM -->
-            <div id="register-form" class="hidden">
-                <div class="auth-logo">🚀</div>
-                <h2>Registrierung</h2>
-                <p class="auth-subtitle">Starte deine Lernreise!</p>
-                <div id="register-message"></div>
-                <form id="form-register">
-                    <div class="form-group">
-                        <label for="register-name">Benutzername</label>
-                        <input type="text" id="register-name" placeholder="z.B. TestUser123" required minlength="3" maxlength="50">
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password">Passwort</label>
-                        <input type="password" id="register-password" placeholder="Mindestens 6 Zeichen" required minlength="6">
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password-confirm">Passwort bestätigen</label>
-                        <input type="password" id="register-password-confirm" placeholder="••••••••" required minlength="6">
-                    </div>
-                    <button type="submit" class="btn-auth">🚀 Registrieren</button>
-                </form>
-                <div class="toggle-auth">
-                    <p>Bereits registriert? <button type="button" id="btn-to-login">Anmelden</button></p>
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">📚</div>
+                <h3 style="margin-bottom: 0.5rem;">Noch keine Lernpläne</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Erstelle deinen ersten Lernplan oder importiere vorhandene Pläne.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button class="btn btn-primary" onclick="window.goToEditor()">
+                        Neuen Plan erstellen
+                    </button>
+                    <button class="btn btn-outline" onclick="window.showImportZone()">
+                        Pläne importieren
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- ===== MAIN APP ===== -->
-    <div class="container">
-        <div class="header">
-            <h1>🔥 STUDY BEAST 🔥</h1>
-            <p>Dein Premium Fokus-Kraftwerk mit Next-Level Gamification</p>
-            <div class="user-logout hidden" id="user-logout-section">
-                <span>👤 <span id="current-username">User</span></span>
-                <button onclick="logoutUser()">Abmelden</button>
+            <!-- Plans Grid -->
+            <div id="plansContainer" class="plans-grid">
+                <!-- Dynamisch geladen -->
             </div>
         </div>
 
-        <div class="stats-bar">
-            <div class="stat-item">
-                <span class="stat-value" id="coins">0</span>
-                <span class="stat-label">💰 Goldmünzen</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value" id="diamonds">0</span>
-                <span class="stat-label">💎 Diamanten</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value" id="pomodoros">0</span>
-                <span class="stat-label">🍅 Pomodoros</span>
-            </div>
-        </div>
-
-        <div class="tab-buttons">
-            <button class="tab-btn active" data-tab="trophy">🏆 Trophäenpfade</button>
-            <button class="tab-btn" data-tab="challenge">⚡ Challenge Mode</button>
-            <button class="tab-btn" data-tab="pomodoro">🍅 Pomodoro</button>
-        </div>
-
-        <!-- TROPHY SECTION -->
-        <div id="trophy-section" class="content-section active">
-            <div class="path-container">
-                <div class="path-header">
-                    <h2 class="path-title">🏆 GOLD PFAD</h2>
-                    <div class="settings-gear" onclick="openSettings()">⚙️</div>
-                </div>
-                <div class="path-overview">
-                    <div class="path-stats">
-                        <span>Fortschritt: <strong id="gold-current">0</strong> / <strong>100</strong> Pomodoros</span>
-                        <span id="gold-percentage">0%</span>
+        <!-- Editor Page -->
+        <div id="editor-page" class="page">
+            <div style="padding: 2rem 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 id="editorTitle">Neuer Lernplan</h1>
+                        <p id="editorSubtitle" class="text-muted">Erstelle einen strukturierten Lernplan</p>
                     </div>
-                    <div class="progress-rail">
-                        <div class="progress-beam" id="gold-progress" style="width: 0%"></div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-secondary" onclick="window.goToDashboard()">
+                            ← Zurück
+                        </button>
+                        <button class="btn btn-primary" onclick="window.savePlan()">
+                            💾 Speichern
+                        </button>
                     </div>
-                    <div class="milestone-rail" id="gold-milestones"></div>
                 </div>
-                <div class="trophy-grid" id="trophy-grid"></div>
-            </div>
-            <div class="path-container">
-                <div class="path-header">
-                    <h2 class="path-title">💎 DIAMANT PFAD</h2>
-                    <div class="settings-gear" onclick="openSettings()">⚙️</div>
-                </div>
-                <div class="path-overview">
-                    <div class="path-stats">
-                        <span>Fortschritt: <strong id="diamond-current">0</strong> / <strong>75</strong> Challenges</span>
-                        <span id="diamond-percentage">0%</span>
+
+                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+                    <!-- Sidebar -->
+                    <div>
+                        <div class="card">
+                            <h3 style="margin-bottom: 1rem;">Plan-Details</h3>
+                            <div class="form-group">
+                                <label class="form-label">Titel *</label>
+                                <input type="text" id="planTitle" class="form-input" placeholder="z.B. Mathematik - Analysis">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Beschreibung</label>
+                                <textarea id="planDescription" class="form-textarea" rows="3" placeholder="Kurze Beschreibung..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Fach *</label>
+                                <input type="text" id="planSubject" class="form-input" placeholder="z.B. Mathematik">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Fälligkeitsdatum *</label>
+                                <input type="date" id="planDeadline" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ordner</label>
+                                <select id="planFolder" class="form-select">
+                                    <option value="Allgemein">Allgemein</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <h3 style="margin-bottom: 1rem;">Themengebiete</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Füge Themengebiete hinzu und strukturiere deinen Lernplan.</p>
+                            <button class="btn btn-primary w-full" onclick="window.addSegment()">
+                                ➕ Themengebiet hinzufügen
+                            </button>
+                        </div>
                     </div>
-                    <div class="progress-rail">
-                        <div class="progress-beam" id="diamond-progress" style="width: 0%"></div>
+
+                    <!-- Main Content -->
+                    <div>
+                        <div id="segmentsContainer">
+                            <!-- Dynamisch geladen -->
+                        </div>
                     </div>
-                    <div class="milestone-rail" id="diamond-milestones"></div>
                 </div>
-                <div class="trophy-grid" id="diamond-grid"></div>
             </div>
         </div>
 
-        <!-- CHALLENGE SECTION -->
-        <div id="challenge-section" class="content-section">
-            <div class="challenge-container">
-                <h2 class="path-title">⚡ CHALLENGE MODE</h2>
-                <div class="mode-selector" id="mode-selector"></div>
-                <div class="timer-display" id="timer">00:00</div>
-                <div class="input-group">
-                    <input type="text" class="todo-input" id="todo-input" placeholder="Neue Aufgabe...">
-                    <button class="challenge-btn" style="width: auto; padding: 16px 20px;" onclick="addTodo()">➕</button>
+        <!-- Learning Page -->
+        <div id="learning-page" class="page">
+            <div style="padding: 2rem 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 id="learningTitle">Lernplan Titel</h1>
+                        <p id="learningSubject" class="text-muted">Fach • Ordner</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-secondary" onclick="window.goToDashboard()">
+                            ← Dashboard
+                        </button>
+                        <button class="btn btn-primary" onclick="window.exportPlan()">
+                            💾 Exportieren
+                        </button>
+                    </div>
                 </div>
-                <div class="todo-list" id="todo-list"></div>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="challenge-btn" style="flex: 1; min-width: 200px;" id="start-challenge" onclick="startChallenge()">🚀 CHALLENGE STARTEN!</button>
-                    <button class="challenge-btn" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #ff6b6b 0%, #f5576c 100%); display: none;" id="stop-challenge" onclick="stopChallenge()">⏹️ STOPP</button>
+
+                <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+                    <!-- Main Content -->
+                    <div>
+                        <div id="learningContent">
+                            <!-- Dynamisch geladen -->
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div>
+                        <div id="pathSidebar"></div>
+                        <div id="progressOverview" class="mt-4"></div>
+                    </div>
                 </div>
-                <div id="effect-container" style="position: fixed; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;"></div>
             </div>
         </div>
+    </main>
 
-        <!-- POMODORO SECTION -->
-        <div id="pomodoro-section" class="content-section">
-            <div class="pomodoro-container">
-                <h2 class="path-title">🍅 POMODORO TIMER</h2>
-                <div class="timer-display" id="pomodoro-timer">25:00</div>
-                <div class="button-group">
-                    <button class="challenge-btn" onclick="startPomodoro()">▶️ Starten</button>
-                    <button class="challenge-btn" onclick="resetPomodoro()">🔄 Zurücksetzen</button>
+    <!-- Modal für Ordnerverwaltung -->
+    <div id="folderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ordner verwalten</h2>
+                <button class="modal-close" onclick="window.closeFolderModal()">×</button>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Neuer Ordner</label>
+                    <div class="form-row">
+                        <input type="text" id="newFolderName" class="form-input" placeholder="z.B. Abitur 2024">
+                        <button class="btn btn-primary" onclick="window.addNewFolder()">Hinzufügen</button>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 1.5rem 0 0.75rem 0;">Vorhandene Ordner</h3>
+                <div id="folderList" style="margin-bottom: 1.5rem;">
+                    <!-- Dynamisch gefüllt -->
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="window.closeFolderModal()">Schließen</button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- SETTINGS PANEL -->
-    <div class="settings-panel" id="settings-panel">
-        <div class="settings-header">
-            <h2>Einstellungen</h2>
-            <button class="close-settings" onclick="closeSettings()">✕</button>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label">Effektstärke</label>
-            <input type="range" id="effect-intensity" class="slider" min="0" max="100" value="70">
-            <div class="setting-value"><span id="intensity-value">70</span>%</div>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label">Ablenkungsfilter</label>
-            <select style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; backdrop-filter: blur(10px);">
-                <option value="minimal">🔇 Minimal</option>
-                <option value="balanced" selected>⚖️ Balanced</option>
-                <option value="overdrive">⚡ Overdrive</option>
-            </select>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label">Dynamik-Modus</label>
-            <select style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; backdrop-filter: blur(10px);">
-                <option value="static">🔲 Statisch</option>
-                <option value="pulsing" selected>💓 Pulsierend</option>
-                <option value="reactive">⚙️ Reaktiv</option>
-            </select>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label">
-                <input type="checkbox" checked style="margin-right: 10px; transform: scale(1.2);"> ✅ Effekte aktivieren
-            </label>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label">
-                <input type="checkbox" checked style="margin-right: 10px; transform: scale(1.2);"> 🔊 Sound aktivieren
-            </label>
         </div>
     </div>
 
+    <!-- Modal für Themengebiete -->
+    <div id="segmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Themengebiet bearbeiten</h2>
+                <button class="modal-close" onclick="window.closeSegmentModal()">×</button>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Titel *</label>
+                    <input type="text" id="segmentTitle" class="form-input" placeholder="z.B. Analysis Grundlagen">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Beschreibung</label>
+                    <textarea id="segmentDescription" class="form-textarea" rows="3" placeholder="Beschreibung..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Farbe</label>
+                    <input type="color" id="segmentColor" class="form-input" value="#6366f1" style="height: 40px;">
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" onclick="window.closeSegmentModal()">Abbrechen</button>
+                    <button class="btn btn-primary" onclick="window.saveSegment()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal für Blöcke -->
+    <div id="blockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="blockModalTitle">Block hinzufügen</h2>
+                <button class="modal-close" onclick="window.closeBlockModal()">×</button>
+            </div>
+            <div>
+                <form id="blockModalForm" onsubmit="window.saveBlock(); return false;"></form>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" onclick="window.closeBlockModal()">Abbrechen</button>
+                    <button class="btn btn-primary" onclick="window.saveBlock()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal für Import -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lernpläne importieren</h2>
+                <button class="modal-close" onclick="window.closeImportModal()">×</button>
+            </div>
+            <div>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Importiere Lernpläne aus einer Backup-Datei (.json oder .lpfad)</p>
+                
+                <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📥</div>
+                    <h3 style="margin-bottom: 0.5rem;">Datei hierher ziehen</h3>
+                    <p style="color: var(--text-secondary);">oder klicke, um eine Datei auszuwählen</p>
+                    <input type="file" id="fileInput" accept=".json,.lpfad" onchange="window.handleFileSelect(event)" hidden>
+                </div>
+                
+                <div id="importError" style="background: #fee; color: #c00; padding: 0.75rem; border-radius: var(--radius-sm); margin: 1rem 0; display: none;"></div>
+                
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="window.closeImportModal()">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal für KI-Assistent -->
+    <div id="kiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>KI-Assistent</h2>
+                <button class="modal-close" onclick="window.closeKIModal()">×</button>
+            </div>
+            <div>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Generiere eine Vorlage für einen Lernplan mit Hilfe von KI</p>
+                
+                <div class="form-group">
+                    <label class="form-label">Thema</label>
+                    <input type="text" id="kiTopic" class="form-input" placeholder="z.B. Mathematik - Analytische Geometrie">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Schwierigkeitsstufe</label>
+                        <select id="kiLevel" class="form-select">
+                            <option value="beginner">Anfänger</option>
+                            <option value="intermediate" selected>Mittelstufe</option>
+                            <option value="advanced">Fortgeschritten</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Anzahl Lerneinheiten</label>
+                        <select id="kiUnits" class="form-select">
+                            <option value="3">3 Einheiten</option>
+                            <option value="5" selected>5 Einheiten</option>
+                            <option value="8">8 Einheiten</option>
+                            <option value="10">10 Einheiten</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">KI-Prompt (kopiere diesen Text in deinen KI-Assistenten)</label>
+                    <textarea id="kiPrompt" class="form-textarea" rows="8" readonly></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="window.closeKIModal()">Schließen</button>
+                    <button class="btn btn-primary" onclick="window.copyPrompt()">
+                        📋 Prompt kopieren
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Modal -->
+    <div id="completionModal" class="modal">
+        <div class="modal-content">
+            <div style="text-align: center; padding: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+                <h2 style="margin-bottom: 1rem;">Herzlichen Glückwunsch!</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Du hast den Lernplan <strong id="completedPlanTitle">[Titel]</strong> erfolgreich abgeschlossen!</p>
+                <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                    <button class="btn btn-primary" onclick="window.closeCompletionModal()">Weiter lernen</button>
+                    <button class="btn btn-secondary" onclick="window.goToDashboard()">Zum Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="script.js" defer></script>
+    
     <script>
-        // ====== PARTICLE SYSTEM ======
-        function createParticles() {
-            const container = document.getElementById('particles-container');
-            if (!container) return;
-            
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                container.appendChild(particle);
-            }
-        }
-
-        // ====== FIREBASE KONFIGURATION ======
-        const firebaseConfig = {
-            apiKey: "DEINE_API_KEY_HIER",
-            authDomain: "DEIN_PROJEKT.firebaseapp.com",
-            projectId: "DEIN_PROJEKT_ID",
-            storageBucket: "DEIN_PROJEKT.appspot.com",
-            messagingSenderId: "DEINE_MESSAGING_ID",
-            appId: "DEINE_APP_ID"
-        };
-
-        // Globale db Variable (NUR EINMAL deklarieren!)
-        let db = null;
-
-        // ====== FIREBASE SIMULATION (OFFLINE-MODUS) ======
-        const localDB = {
-            users: [],
-            
-            async addUser(userData) {
-                userData.id = 'user_' + Date.now();
-                this.users.push(userData);
-                localStorage.setItem('fakeDB_users', JSON.stringify(this.users));
-                return { id: userData.id };
-            },
-            async getUser(username) {
-                this.users = JSON.parse(localStorage.getItem('fakeDB_users') || '[]');
-                return this.users.find(u => u.username === username.toLowerCase()) || null;
-            },
-            async userExists(username) {
-                this.users = JSON.parse(localStorage.getItem('fakeDB_users') || '[]');
-                return this.users.some(u => u.username === username.toLowerCase());
-            }
-        };
-
-        // Nutze LocalDB statt Firebase
-        const db_service = localDB;
-
-        // Initalisierung mit Fehlerbehandlung (Firebase OPTIONAL)
-        try {
-            if (firebase && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-            }
-        } catch (error) {
-            console.warn('⚠️ Firebase nicht verfügbar - Nutze Offline-Modus');
-            db = db_service;
-        }
-
-        // ====== DATEN ======
-        const goldTrophies = [
-            { name: 'Brain-Jogger', icon: '🧠', requirement: 1 },
-            { name: 'Noten-Nugget', icon: '📝', requirement: 3 },
-            { name: 'Schlauschwätzer', icon: '🗣️', requirement: 5 },
-            { name: 'Fokus-Flexer', icon: '💪', requirement: 8 },
-            { name: 'Wissen-Wrecker', icon: '📚', requirement: 12 },
-            { name: 'Highscore-Hunter', icon: '🎯', requirement: 16 },
-            { name: 'Study-Beast', icon: '🦁', requirement: 21 },
-            { name: 'Grind-Gott', icon: '⚡', requirement: 27 },
-            { name: 'Klausur-Killer', icon: '🔪', requirement: 34 },
-            { name: 'Noten-Nator', icon: '🤖', requirement: 42 },
-            { name: 'Lern-Legend', icon: '👑', requirement: 51 },
-            { name: 'Abi-Annihilator', icon: '💥', requirement: 61 },
-            { name: 'Overthinker-Prime', icon: '🧬', requirement: 72 },
-            { name: '100-Prozent-Prinz', icon: '💯', requirement: 84 },
-            { name: 'IQ-Overkill', icon: '🚀', requirement: 100 }
-        ];
-
-        const diamondModes = [
-            { name: 'Vibe-Manager', icon: '😎', requirement: 5 },
-            { name: 'Grind-Guardian', icon: '🛡️', requirement: 10 },
-            { name: 'Focus-Fella', icon: '🎓', requirement: 15 },
-            { name: 'Hustle-Hawk', icon: '🦅', requirement: 20 },
-            { name: 'Goal-Getter', icon: '🎯', requirement: 25 },
-            { name: 'Daily-Driver', icon: '🚗', requirement: 30 },
-            { name: 'Grind-General', icon: '⭐', requirement: 35 },
-            { name: 'Success-Seeker', icon: '🔍', requirement: 40 },
-            { name: 'Hustle-Heavyweight', icon: '🏋️', requirement: 45 },
-            { name: 'Focus-Frontier', icon: '🌟', requirement: 50 },
-            { name: 'Grind-Giant', icon: '👹', requirement: 55 },
-            { name: 'Hustle-Hybrid', icon: '🦾', requirement: 60 },
-            { name: 'Success-Slayer', icon: '⚔️', requirement: 65 },
-            { name: 'Grind-Gorilla', icon: '🦍', requirement: 70 },
-            { name: 'Hustle-He-Goat', icon: '🐐', requirement: 75 }
-        ];
-
-        const challengeModes = [
-            'Literaturprofessor 📖',
-            'Mathe Magier 🧮',
-            'Physik Phantom 🔬',
-            'Chemie Champion 🧪',
-            'Bio Boss 🧬',
-            'Geschichte Guru 📜',
-            'Sprachen Samurai 🗣️'
-        ];
-
-        // ====== GLOBALE VARIABLEN ======
-        let currentUser = null;
-        let gameData = {
-            coins: 0,
-            diamonds: 0,
-            pomodoros: 0,
-            todos: [],
-            currentMode: challengeModes[0],
-            challengeActive: false
-        };
-        let pomodoroInterval = null;
-        let pomodoroSeconds = 1500;
-        let challengeInterval = null;
-        let challengeSeconds = 0;
-
-        // ====== SIMPLE PASSWORT-HASH (FALLBACK) ======
-        function simpleHash(password) {
-            let hash = 0;
-            for (let i = 0; i < password.length; i++) {
-                const char = password.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return 'hash_' + Math.abs(hash).toString(36) + '_' + btoa(password).substring(0, 20);
-        }
-
-        // ====== AUTH FUNKTIONEN ======
-        async function hashPassword(password) {
-            if (typeof bcrypt !== 'undefined') {
-                try {
-                    return await bcrypt.hash(password, 10);
-                } catch (e) {
-                    console.warn('BCrypt fehlgeschlagen, nutze Fallback');
-                    return simpleHash(password);
-                }
-            }
-            return simpleHash(password);
-        }
-
-        async function comparePassword(password, hash) {
-            if (typeof bcrypt !== 'undefined') {
-                try {
-                    return await bcrypt.compare(password, hash);
-                } catch (e) {
-                    console.warn('BCrypt Vergleich fehlgeschlagen');
-                    return simpleHash(password) === hash;
-                }
-            }
-            return simpleHash(password) === hash;
-        }
-
-        async function isUsernameAvailable(username) {
-            try {
-                const exists = await db_service.userExists(username);
-                return !exists;
-            } catch (error) {
-                console.error('Fehler beim Prüfen des Benutzernamens:', error);
-                return false;
-            }
-        }
-
-        async function getUserByUsername(username) {
-            try {
-                const user = await db_service.getUser(username);
-                return user;
-            } catch (error) {
-                console.error('Fehler beim Abrufen des Benutzers:', error);
-                return null;
-            }
-        }
-
-        function saveSession(user) {
-            const sessionData = {
-                id: user.id,
-                username: user.username,
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('currentSession', JSON.stringify(sessionData));
-        }
-
-        function getSession() {
-            const session = localStorage.getItem('currentSession');
-            return session ? JSON.parse(session) : null;
-        }
-
-        function clearSession() {
-            localStorage.removeItem('currentSession');
-        }
-
-        function showMessage(elementId, message, type = 'info') {
-            const element = document.getElementById(elementId);
-            element.innerHTML = `<div class="auth-message ${type}">${message}</div>`;
-            setTimeout(() => {
-                element.innerHTML = '';
-            }, 5000);
-        }
-
-        function showAuthScreen() {
-            document.getElementById('auth-screen').classList.remove('hidden');
-        }
-
-        function hideAuthScreen() {
-            document.getElementById('auth-screen').classList.add('hidden');
-        }
-
-        function showMainApp() {
-            hideAuthScreen();
-            document.getElementById('user-logout-section').classList.remove('hidden');
-            document.getElementById('current-username').textContent = currentUser.usernameDisplay;
-            
-            // LADE GESPEICHERTE DATEN!
-            loadGameData();
-            
-            renderModeSelector();
-            renderMilestones();
-        }
-
-        function showLoginForm() {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        }
-
-        function showRegisterForm() {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        }
-
-        function logoutUser() {
-            if (confirm('Willst du dich abmelden?')) {
-                currentUser = null;
-                clearSession();
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('user-logout-section').classList.add('hidden');
-                gameData.coins = 0;
-                gameData.diamonds = 0;
-                gameData.pomodoros = 0;
-                updateStats();
-                document.getElementById('form-login').reset();
-                document.getElementById('form-register').reset();
-                showLoginForm();
-            }
-        }
-
-        // ====== REGISTRIERUNG ======
-        async function handleRegister(e) {
-            e.preventDefault();
-
-            const username = document.getElementById('register-name').value.trim();
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-password-confirm').value;
-
-            if (password !== confirmPassword) {
-                showMessage('register-message', '❌ Passwörter stimmen nicht überein!', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showMessage('register-message', '❌ Passwort muss mindestens 6 Zeichen lang sein!', 'error');
-                return;
-            }
-
-            if (username.length < 3) {
-                showMessage('register-message', '❌ Benutzername muss mindestens 3 Zeichen lang sein!', 'error');
-                return;
-            }
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = '⏳ Wird registriert...';
-
-            try {
-                const available = await isUsernameAvailable(username);
-                if (!available) {
-                    showMessage('register-message', '❌ Benutzername existiert bereits!', 'error');
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                    return;
-                }
-
-                const passwordHash = await hashPassword(password);
-
-                const newUser = {
-                    username: username.toLowerCase(),
-                    usernameDisplay: username,
-                    passwordHash: passwordHash,
-                    coins: 0,
-                    diamonds: 0,
-                    pomodoros: 0,
-                    createdAt: new Date(),
-                    lastLogin: null
-                };
-
-                const docRef = await db_service.addUser(newUser);
-
-                showMessage('register-message', '✅ Registrierung erfolgreich! Sie werden weitergeleitet...', 'success');
-
-                setTimeout(() => {
-                    currentUser = {
-                        id: docRef.id,
-                        ...newUser
-                    };
-                    saveSession(currentUser);
-                    showMainApp();
-                    document.getElementById('form-register').reset();
-                }, 1500);
-
-            } catch (error) {
-                console.error('Registrierungsfehler:', error);
-                showMessage('register-message', '❌ Ein Fehler ist aufgetreten.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-        }
-
-        // ====== LOGIN ======
-        async function handleLogin(e) {
-            e.preventDefault();
-
-            const username = document.getElementById('login-name').value.trim();
-            const password = document.getElementById('login-password').value;
-
-            if (!username || !password) {
-                showMessage('login-message', '❌ Alle Felder erforderlich!', 'error');
-                return;
-            }
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = '⏳ Wird angemeldet...';
-
-            try {
-                const user = await getUserByUsername(username);
-                
-                if (!user) {
-                    showMessage('login-message', '❌ Benutzer nicht gefunden!', 'error');
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                    return;
-                }
-
-                const validPassword = await comparePassword(password, user.passwordHash);
-                
-                if (!validPassword) {
-                    showMessage('login-message', '❌ Passwort ist falsch!', 'error');
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                    return;
-                }
-
-                currentUser = user;
-                saveSession(currentUser);
-                
-                showMessage('login-message', '✅ Anmeldung erfolgreich! Sie werden weitergeleitet...', 'success');
-
-                setTimeout(() => {
-                    showMainApp();
-                    document.getElementById('form-login').reset();
-                }, 1500);
-
-            } catch (error) {
-                console.error('Anmeldungsfehler:', error);
-                showMessage('login-message', '❌ Ein Fehler ist aufgetreten.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-        }
-
-        // ====== RENDERING FUNKTIONEN ======
-        function renderTrophies() {
-            const grid = document.getElementById('trophy-grid');
-            grid.innerHTML = '';
-            
-            goldTrophies.forEach(trophy => {
-                const div = document.createElement('div');
-                div.className = `trophy-item ${gameData.pomodoros >= trophy.requirement ? 'unlocked' : 'locked'}`;
-                div.innerHTML = `
-                    <span class="trophy-icon">${trophy.icon}</span>
-                    <div class="trophy-name">${trophy.name}</div>
-                    <div class="trophy-requirement">Ab ${trophy.requirement} Pomodoros</div>
-                `;
-                grid.appendChild(div);
-            });
-
-            updateProgress('gold-progress', gameData.pomodoros, 100);
-        }
-
-        function renderDiamondModes() {
-            const grid = document.getElementById('diamond-grid');
-            grid.innerHTML = '';
-            
-            diamondModes.forEach(mode => {
-                const div = document.createElement('div');
-                div.className = `trophy-item ${gameData.diamonds >= mode.requirement ? 'unlocked' : 'locked'}`;
-                div.innerHTML = `
-                    <span class="trophy-icon">${mode.icon}</span>
-                    <div class="trophy-name">${mode.name}</div>
-                    <div class="trophy-requirement">Ab ${mode.requirement} Challenges</div>
-                `;
-                grid.appendChild(div);
-            });
-
-            updateProgress('diamond-progress', gameData.diamonds, 75);
-        }
-
-        function updateProgress(id, current, max) {
-            const percent = Math.min((current / max) * 100, 100);
-            document.getElementById(id).style.width = percent + '%';
-            
-            if (id === 'gold-progress') {
-                document.getElementById('gold-percentage').textContent = Math.round(percent) + '%';
-                document.getElementById('gold-current').textContent = current;
-            } else {
-                document.getElementById('diamond-percentage').textContent = Math.round(percent) + '%';
-                document.getElementById('diamond-current').textContent = current;
-            }
-        }
-
-        function renderModeSelector() {
-            const selector = document.getElementById('mode-selector');
-            selector.innerHTML = '';
-            
-            challengeModes.forEach((mode, index) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'mode-btn' + (index === 0 ? ' active' : '');
-                btn.textContent = mode;
-                btn.onclick = () => {
-                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameData.currentMode = mode;
-                };
-                selector.appendChild(btn);
-            });
-        }
-
-        function renderMilestones() {
-            renderMilestonePath('gold-milestones', goldTrophies.slice(0, 7));
-            renderMilestonePath('diamond-milestones', diamondModes.slice(0, 7));
-        }
-
-        function renderMilestonePath(containerId, items) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            
-            items.forEach((item, idx) => {
-                const milestone = document.createElement('div');
-                milestone.className = 'milestone';
-                milestone.innerHTML = `
-                    <div class="milestone-marker">📍</div>
-                    <div class="milestone-label">${item.name}</div>
-                    <div class="milestone-detail">Req: ${item.requirement}</div>
-                `;
-                container.appendChild(milestone);
-            });
-        }
-
-        function updateStats() {
-            document.getElementById('coins').textContent = gameData.coins;
-            document.getElementById('diamonds').textContent = gameData.diamonds;
-            document.getElementById('pomodoros').textContent = gameData.pomodoros;
-        }
-
-        function renderTodos() {
-            const list = document.getElementById('todo-list');
-            list.innerHTML = '';
-            
-            gameData.todos.forEach(todo => {
-                const li = document.createElement('div');
-                li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-                li.innerHTML = `
-                    <span onclick="toggleTodo('${todo.id}')" style="cursor: pointer; flex: 1;">${todo.text}</span>
-                    <div class="action-buttons">
-                        <button class="btn-small" onclick="toggleTodo('${todo.id}')">✓</button>
-                        <button class="btn-small" onclick="deleteTodo('${todo.id}')">✕</button>
-                    </div>
-                `;
-                list.appendChild(li);
-            });
-        }
-
-        // ====== GAME FUNKTIONEN ======
-        function addTodo() {
-            const input = document.getElementById('todo-input');
-            const text = input.value.trim();
-            
-            if (text) {
-                gameData.todos.push({
-                    id: Date.now().toString(),
-                    text,
-                    completed: false
-                });
-                input.value = '';
-                renderTodos();
-                saveGameData(); // SPEICHERE!
-            }
-        }
-
-        function toggleTodo(id) {
-            const todo = gameData.todos.find(t => t.id === id);
-            if (todo) {
-                todo.completed = !todo.completed;
-                renderTodos();
-                saveGameData(); // SPEICHERE!
-            }
-        }
-
-        function deleteTodo(id) {
-            gameData.todos = gameData.todos.filter(t => t.id !== id);
-            renderTodos();
-            saveGameData(); // SPEICHERE!
-        }
-
-        // ====== CHALLENGE MODE FIXES ======
-        function startChallenge() {
-            if (gameData.todos.length === 0) {
-                alert('Bitte fügen Sie mindestens eine Aufgabe hinzu!');
-                return;
-            }
-            if (!gameData.challengeActive) {
-                gameData.challengeActive = true;
-                challengeSeconds = 0;
-                
-                const startBtn = document.getElementById('start-challenge');
-                const stopBtn = document.getElementById('stop-challenge');
-                
-                if (startBtn) startBtn.style.display = 'none';
-               
-                if (stopBtn) stopBtn.style.display = 'block';
-                
-                document.addEventListener('keydown', handleSpacebar);
-                challengeInterval = setInterval(() => {
-                    challengeSeconds++;
-                    const mins = Math.floor(challengeSeconds / 60);
-                    const secs = challengeSeconds % 60;
-                    const timerDisplay = document.getElementById('timer');
-                    if (timerDisplay) {
-                        timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    }
-                    if (challengeSeconds >= 3600) {
-                        endChallenge();
-                    }
-                }, 1000);
-                triggerModeEffect();
-            }
-        }
-
-        function stopChallenge() {
-            if (gameData.challengeActive) {
-                endChallenge();
-            }
-        }
-
-        function handleSpacebar(e) {
-            if (e.code === 'Space' && gameData.challengeActive) {
-                e.preventDefault();
-                triggerModeEffect();
-                playSound();
-            }
-        }
-
-        function endChallenge() {
-            gameData.challengeActive = false;
-            clearInterval(challengeInterval);
-            document.removeEventListener('keydown', handleSpacebar);
-            const reward = Math.floor(Math.random() * 8) + 5;
-            gameData.diamonds += reward;
-            gameData.coins += reward * 3;
-            const startBtn = document.getElementById('start-challenge');
-            const stopBtn = document.getElementById('stop-challenge');
-            if (startBtn) startBtn.style.display = 'block';
-            if (stopBtn) stopBtn.style.display = 'none';
-            
-            updateStats();
-            renderDiamondModes();
-            renderTrophies();
-            createMassiveConfetti();
-            const timerDisplay = document.getElementById('timer');
-            if (timerDisplay) timerDisplay.textContent = '00:00';
-            // SPEICHERE JETZT!
-            saveGameData();
-        }
-
-        // ====== POMODORO FIXES ======
-        function startPomodoro() {
-            if (pomodoroInterval) return;
-            pomodoroInterval = setInterval(() => {
-                pomodoroSeconds--;
-                const mins = Math.floor(pomodoroSeconds / 60);
-                const secs = pomodoroSeconds % 60;
-                const pomodoroDisplay = document.getElementById('pomodoro-timer');
-                
-                if (pomodoroDisplay) {
-                    pomodoroDisplay.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-                    
-                    // Warning effect when less than 5 minutes
-                    if (pomodoroSeconds <= 300) {
-                        pomodoroDisplay.classList.add('warning');
-                    }
-                }
-                
-                if (pomodoroSeconds <= 0) {
-                    clearInterval(pomodoroInterval);
-                    pomodoroInterval = null;
-                    gameData.pomodoros++;
-                    updateStats();
-                    renderTrophies();
-                    createConfetti();
-                    
-                    // SPEICHERE JETZT!
-                    saveGameData();
-                    
-                    alert('🍅 Pomodoro abgeschlossen!');
-                    resetPomodoro();
-                }
-            }, 1000);
-        }
-
-        function resetPomodoro() {
-            clearInterval(pomodoroInterval);
-            pomodoroInterval = null;
-            pomodoroSeconds = 1500;
-            const pomodoroDisplay = document.getElementById('pomodoro-timer');
-            if (pomodoroDisplay) {
-                pomodoroDisplay.textContent = '25:00';
-                pomodoroDisplay.classList.remove('warning');
-            }
-        }
-
-        // ====== EFFECT CONTAINER FIX ======
-        function createFloatingFormulas() {
-            const formulas = ['∑', '∫', '√', '∞', '±', '≠', '×', '÷', '∂', '∆', 'π', 'φ', 'e'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 8; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'formula-particle';
-                particle.textContent = formulas[Math.floor(Math.random() * formulas.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.color = ['#667eea', '#764ba2', '#f5576c'][Math.floor(Math.random() * 3)];
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createAtomParticles() {
-            const atoms = ['H', 'O', 'C', 'N', 'Ca', 'Na', 'Cl', 'S'];
-            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 6; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'atom-particle';
-                particle.textContent = atoms[Math.floor(Math.random() * atoms.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.borderColor = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createPhysicsEffects() {
-            const symbols = ['⚛️', '🔬', '⚙️', '🌌'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 7; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'formula-particle';
-                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.fontSize = '2em';
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createDNAEffects() {
-            const symbols = ['🧬', '🧪', '🦠', '🌿'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 7; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'formula-particle';
-                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.fontSize = '1.8em';
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createBookEffects() {
-            const symbols = ['📚', '📖', '✍️', '📝'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 6; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'formula-particle';
-                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.fontSize = '2em';
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createHistoryEffects() {
-            const symbols = ['🏛️', '📜', '⚔️', '👑'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 7; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'formula-particle';
-                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.fontSize = '2em';
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createLanguageEffects() {
-            const languages = ['🇩🇪', '🇬🇧', '🇫🇷', '🇪🇸', '🗣️'];
-            const container = document.getElementById('effect-container');
-            
-            if (!container) return;
-            for (let i = 0; i < 7; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'formula-particle';
-                particle.textContent = languages[Math.floor(Math.random() * languages.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '0';
-                particle.style.fontSize = '1.8em';
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 3000);
-            }
-        }
-
-        function createConfetti() {
-            const colors = ['#ffd700', '#4ecdc4', '#ff6b6b', '#45b7d1', '#6bcf7f'];
-            const emojis = ['🎉', '⭐', '🎊', '🏆', '💎'];
-                
-            for (let i = 0; i < 30; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.top = '0';
-                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.fontSize = '2em';
-                confetti.style.animation = `confettiFall ${2 + Math.random() * 1}s linear forwards`;
-                document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 3000);
-            }
-        }
-
-        function createMassiveConfetti() {
-            for (let i = 0; i < 8; i++) {
-                setTimeout(() => createConfetti(), i * 200);
-            }
-        }
-
-        function playSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.frequency.value = 800;
-                osc.type = 'sine';
-                
-                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
-                
-                osc.start(audioContext.currentTime);
-                osc.stop(audioContext.currentTime + 0.25);
-            } catch (e) {
-                console.log('Audio nicht verfügbar');
-            }
-        }
-
-        function triggerModeEffect() {
-            const mode = gameData.currentMode;
-            if (mode.includes('Mathe')) createFloatingFormulas();
-            else if (mode.includes('Chemie')) createAtomParticles();
-            else if (mode.includes('Physik')) createPhysicsEffects();
-            else if (mode.includes('Bio')) createDNAEffects();
-            else if (mode.includes('Literatur')) createBookEffects();
-            else if (mode.includes('Geschichte')) createHistoryEffects();
-            else if (mode.includes('Sprachen')) createLanguageEffects();
-        }
-
-        function openSettings() {
-            document.getElementById('settings-panel').classList.add('open');
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-panel').classList.remove('open');
-        }
-
-        // ====== TAB FUNKTIONEN (KORRIGIERT) ======
-        function setupTabListeners() {
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    switchTab(tabName);
-                });
-            });
-        }
-
-        function switchTab(tabName) {
-            // Remove active class from all tabs and sections
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-            
-            // Add active class to clicked tab and corresponding section
-            const activeTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
-            const activeSection = document.getElementById(`${tabName}-section`);
-            
-            if (activeTabBtn) activeTabBtn.classList.add('active');
-            if (activeSection) activeSection.classList.add('active');
-        }
-
-        function setupSettingsSliders() {
-            const slider = document.getElementById('effect-intensity');
-            if (slider) {
-                slider.addEventListener('input', function() {
-                    document.getElementById('intensity-value').textContent = this.value;
-                });
-            }
-        }
-
-        // ====== INITIALISIERUNG (KORRIGIERT) ======
-        function initializeApp() {
-            setupTabListeners();
-            setupSettingsSliders();
-            renderTrophies();
-            renderDiamondModes();
-            renderModeSelector();
-            renderMilestones();
-            updateStats();
-            renderTodos();
-            createParticles();
-        }
-
-        // ====== DATENSYNCHRONISATION ======
-        function saveGameData() {
-            if (!currentUser) return;
-            
-            const userData = {
-                ...currentUser,
-                coins: gameData.coins,
-                diamonds: gameData.diamonds,
-                pomodoros: gameData.pomodoros,
-                todos: gameData.todos,
-                lastUpdated: new Date().toISOString()
-            };
-            localStorage.setItem('gameData_' + currentUser.id, JSON.stringify(userData));
-            saveSession(userData);
-            console.log('✅ Daten gespeichert');
-        }
-
-        function loadGameData() {
-            if (!currentUser) return;
-            const saved = localStorage.getItem('gameData_' + currentUser.id);
-            if (saved) {
-                const data = JSON.parse(saved);
-                gameData.coins = data.coins || 0;
-                gameData.diamonds = data.diamonds || 0;
-                gameData.pomodoros = data.pomodoros || 0;
-                gameData.todos = data.todos || [];
-                console.log('✅ Daten geladen');
-                updateStats();
-                renderTrophies();
-                renderDiamondModes();
-                renderTodos();
-            }
-        }
-
-        // ====== DISCLAIMER FUNKTIONEN ======
-        function checkDisclaimer() {
-            const accepted = localStorage.getItem('disclaimerAccepted');
-            if (accepted === 'true') {
-                document.getElementById('disclaimer-overlay').style.display = 'none';
-                const session = getSession();
-                if (session) {
-                    currentUser = session;
-                    showMainApp();
-                } else {
-                    showAuthScreen();
-                }
-            }
-        }
-
-        // ====== DOM CONTENT LOADED EVENT (KORRIGIERT) ======
+        // Warte bis DOM geladen ist, dann initialisiere die App
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize particles
-            createParticles();
+            if (typeof init === 'function') {
+                init();
+            }
             
-            // Disclaimer Setup
-            const disclaimerCheckbox = document.getElementById('disclaimer-checkbox');
-            const btnAccept = document.getElementById('btn-accept-disclaimer');
-            
-            if (disclaimerCheckbox && btnAccept) {
-                disclaimerCheckbox.addEventListener('change', function() {
-                    btnAccept.disabled = !this.checked;
+            // Setup Drag & Drop
+            const dropZone = document.getElementById('dropZone');
+            if (dropZone) {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('dragover');
                 });
                 
-                btnAccept.addEventListener('click', function() {
-                    localStorage.setItem('disclaimerAccepted', 'true');
-                    document.getElementById('disclaimer-overlay').style.display = 'none';
-                    showAuthScreen();
-                    initializeApp();
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('dragover');
                 });
-            }
-            
-            checkDisclaimer();
-            
-            // Form Event Listeners
-            if (document.getElementById('form-register')) {
-                document.getElementById('form-register').addEventListener('submit', handleRegister);
-            }
-            
-            if (document.getElementById('form-login')) {
-                document.getElementById('form-login').addEventListener('submit', handleLogin);
-            }
-            
-            if (document.getElementById('btn-to-register')) {
-                document.getElementById('btn-to-register').addEventListener('click', function(e) {
+                
+                dropZone.addEventListener('drop', (e) => {
                     e.preventDefault();
-                    showRegisterForm();
+                    dropZone.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0 && typeof handleFileSelect === 'function') {
+                        handleFileSelect({ target: { files } });
+                    }
                 });
             }
             
-            if (document.getElementById('btn-to-login')) {
-                document.getElementById('btn-to-login').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    showLoginForm();
-                });
-            }
+            // Ordner-Select initialisieren
+            const folders = JSON.parse(localStorage.getItem('lernplan_folders') || '["Allgemein", "Mathematik", "Deutsch", "Englisch", "Naturwissenschaften", "Geschichte"]');
+            const selects = [document.getElementById('folderSelect'), document.getElementById('planFolder')];
             
-            // Todo input Enter key
-            if (document.getElementById('todo-input')) {
-                document.getElementById('todo-input').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') addTodo();
-                });
-            }
+            selects.forEach(select => {
+                if (select) {
+                    // Standard-Optionen behalten und zusätzliche Ordner hinzufügen
+                    const existingOptions = Array.from(select.options).map(opt => opt.value);
+                    folders.forEach(folder => {
+                        if (!existingOptions.includes(folder)) {
+                            const option = document.createElement('option');
+                            option.value = folder;
+                            option.textContent = folder;
+                            select.appendChild(option);
+                        }
+                    });
+                }
+            });
         });
-
-        // ====== AUTO-SAVE ALLE 30 SEKUNDEN ======
-        setInterval(() => {
-            if (currentUser) {
-                saveGameData();
-            }
-        }, 30000);
     </script>
 </body>
 </html>

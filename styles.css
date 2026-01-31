@@ -1,0 +1,153 @@
+/* Folder System */
+.folder-section {
+  margin-bottom: 32px;
+}
+
+.folder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.folder-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.folder-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.folder-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.folder-manager {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.folder-list {
+  margin: 16px 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.folder-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+
+.folder-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Current Position Markers */
+.current-position {
+  position: relative;
+  border-left: 4px solid var(--primary) !important;
+  background: linear-gradient(135deg, var(--primary-light) 0%, transparent 100%);
+}
+
+.current-position::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.current-marker {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 4px 12px;
+  background: var(--primary);
+  color: white;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* YouTube Container Fix */
+.youtube-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #000;
+}
+
+.youtube-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Card Tags */
+.card-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.card-tag {
+  padding: 4px 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Timer entfernen */
+.pomodoro-sidebar {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .folder-plans {
+    grid-template-columns: 1fr;
+  }
+  
+  .folder-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
