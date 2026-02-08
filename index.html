@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lernmatrix – Intelligent Learning Scheduler</title>
+  <!-- PaperCSS Framework -->
+  <link rel="stylesheet" href="https://unpkg.com/papercss@1.9.2/dist/paper.min.css" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* =========================================
+       PAPERLIKE DESIGN TOKENS - Angepasst für PaperCSS
+       ========================================= */
+    :root {
+      /* ========= PAPER BACKGROUND ========= */
+      --paper-bg: #f7f5f2;
+      --paper-bg-soft: #f4f1ec;
+      --paper-bg-strong: #ece8e2;
+      /* ========= TEXT / INK ========= */
+      --ink-main: #1f1f1f;
+      --ink-muted: #5f5f5f;
+      --ink-faint: #8a8a8a;
+      --ink-disabled: #b5b5b5;
+      /* ========= ACCENT ========= */
+      --accent-main: #6b705c;
+      --accent-soft: rgba(107,112,92,0.15);
+      --accent-faint: rgba(107,112,92,0.06);
+      --accent-dark: #505445;
+      /* ========= LINES ========= */
+      --line-thin: rgba(0,0,0,0.08);
+      --line-faint: rgba(0,0,0,0.05);
+      --line-strong: rgba(0,0,0,0.12);
+      /* ========= ALERTS ========= */
+      --alert-warning-bg: #fef3c7;
+      --alert-warning-text: #78350f;
+      --alert-warning-border: #f59e0b;
+      --alert-error-bg: #fee2e2;
+      --alert-error-text: #7f1d1d;
+      --alert-error-border: #dc2626;
+      /* ========= TYPOGRAPHY ========= */
+      --font-main: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-serif: Georgia, "Times New Roman", serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-md: 1rem;
+      --font-size-lg: 1.25rem;
+      --font-size-xl: 1.6rem;
+      --line-height-tight: 1.3;
+      --line-height-normal: 1.6;
+      --line-height-loose: 1.8;
+      /* ========= SPACING ========= */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 40px;
+      /* ========= BORDERS ========= */
+      --radius-none: 0;
+      --radius-soft: 4px;
+      /* ========= CHECKBOX ========= */
+      --checkbox-size: 16px;
+      --checkbox-border: 1px solid var(--line-strong);
+      --checkbox-check: var(--ink-main);
+    }
+
+    /* =========================================
+       BASE STYLES - Angepasst für PaperCSS
+       ========================================= */
+    body {
+      background: var(--paper-bg);
+      color: var(--ink-main);
+      font-family: var(--font-main);
+      font-size: var(--font-size-md);
+      line-height: var(--line-height-normal);
+      min-height: 100vh;
+    }
+
+    /* =========================================
+       LAYOUT
+       ========================================= */
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-lg);
+    }
+
+    /* =========================================
+       HEADER - Angepasst für PaperCSS
+       ========================================= */
+    header {
+      text-align: center;
+      margin-bottom: var(--space-xl);
+      padding: var(--space-xl) 0;
+      border-bottom: 1px solid var(--line-thin);
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: var(--font-size-xl);
+      font-weight: 500;
+      color: var(--ink-main);
+      margin-bottom: var(--space-sm);
+    }
+
+    .tagline {
+      color: var(--ink-muted);
+      font-size: var(--font-size-sm);
+    }
+
+    /* =========================================
+       NAVIGATION TABS - Angepasst für PaperCSS
+       ========================================= */
+    .nav-tabs {
+      display: flex;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--line-thin);
+    }
+
+    .tab {
+      padding: var(--space-md) var(--space-lg);
+      background: none;
+      border: none;
+      color: var(--ink-muted);
+      cursor: pointer;
+      font-size: var(--font-size-md);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+      font-family: var(--font-main);
+    }
+
+    .tab:hover {
+      color: var(--ink-main);
+      background: var(--accent-faint);
+    }
+
+    .tab.active {
+      color: var(--accent-main);
+      border-bottom-color: var(--accent-main);
+      font-weight: 500;
+    }
+
+    /* =========================================
+       VIEW CONTAINER - Angepasst für PaperCSS
+       ========================================= */
+    .view {
+      background: var(--paper-bg-soft);
+      border-radius: var(--radius-soft);
+      padding: var(--space-xl);
+    }
+
+    /* =========================================
+       FORMS - Komplementär zu PaperCSS
+       ========================================= */
+    .topic-form {
+      display: grid;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      padding: var(--space-lg);
+      background: white;
+      border-radius: var(--radius-soft);
+      border: 1px solid var(--line-thin);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--ink-main);
+      margin-bottom: var(--space-sm);
+    }
+
+    /* =========================================
+       DIFFICULTY SELECTOR - Komplementär zu PaperCSS
+       ========================================= */
+    .difficulty-selector {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+    }
+
+    .diff-btn {
+      flex: 1;
+      padding: var(--space-md);
+      border: 1px solid var(--line-strong);
+      background: white;
+      border-radius: var(--radius-soft);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: var(--font-size-sm);
+      color: var(--ink-main);
+      font-family: var(--font-main);
+    }
+
+    .diff-btn:hover {
+      border-color: var(--accent-main);
+      background: var(--accent-faint);
+    }
+
+    .diff-btn.active {
+      background: var(--accent-main);
+      color: white;
+      border-color: var(--accent-main);
+    }
+
+    /* =========================================
+       BUTTONS - Komplementär zu PaperCSS
+       ========================================= */
+    .btn {
+      font-family: var(--font-main);
+    }
+
+    .btn-primary {
+      background: var(--accent-main);
+      color: white;
+      border-color: var(--accent-main);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--ink-main);
+      border: 1px solid var(--line-strong);
+    }
+
+    .btn-secondary:hover {
+      background: var(--paper-bg-strong);
+      border-color: var(--accent-main);
+    }
+
+    /* =========================================
+       TOPIC LIST - Komplementär zu PaperCSS
+       ========================================= */
+    .topic-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .topic-card {
+      padding: var(--space-lg);
+      background: white;
+      border-radius: var(--radius-soft);
+      border-left: 3px solid var(--accent-main);
+      transition: box-shadow 0.15s ease;
+    }
+
+    .topic-card:hover {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .topic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: var(--space-md);
+    }
+
+    .topic-title {
+      font-size: var(--font-size-lg);
+      font-weight: 500;
+      color: var(--ink-main);
+      font-family: var(--font-serif);
+    }
+
+    .topic-meta {
+      display: flex;
+      gap: var(--space-md);
+      font-size: var(--font-size-sm);
+      color: var(--ink-muted);
+      flex-wrap: wrap;
+      margin-top: var(--space-sm);
+    }
+
+    .meta-badge {
+      padding: var(--space-xs) var(--space-md);
+      background: var(--paper-bg);
+      border-radius: var(--radius-soft);
+      font-weight: 500;
+    }
+
+    .topic-actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .icon-btn {
+      padding: var(--space-sm);
+      background: white;
+      border: 1px solid var(--line-thin);
+      border-radius: var(--radius-soft);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--paper-bg);
+      border-color: var(--line-strong);
+    }
+
+    /* =========================================
+       SETTINGS PANEL - Komplementär zu PaperCSS
+       ========================================= */
+    .settings-panel {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-soft);
+      margin-bottom: var(--space-lg);
+      border: 1px solid var(--line-thin);
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-md);
+    }
+
+    .day-selector {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      margin-top: var(--space-sm);
+    }
+
+    .day-chip {
+      padding: var(--space-sm) var(--space-md);
+      background: white;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-soft);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: var(--font-size-sm);
+    }
+
+    .day-chip:hover {
+      border-color: var(--accent-main);
+      background: var(--accent-faint);
+    }
+
+    .day-chip.active {
+      background: var(--accent-main);
+      color: white;
+      border-color: var(--accent-main);
+    }
+
+    .day-chip.free {
+      background: var(--alert-error-bg);
+      color: var(--alert-error-text);
+      border-color: var(--alert-error-border);
+    }
+
+    /* =========================================
+       ALERTS - Komplementär zu PaperCSS
+       ========================================= */
+    .warning-box {
+      padding: var(--space-md);
+      background: var(--alert-warning-bg);
+      border-left: 3px solid var(--alert-warning-border);
+      border-radius: var(--radius-soft);
+      margin-top: var(--space-md);
+      color: var(--alert-warning-text);
+      font-size: var(--font-size-sm);
+    }
+
+    .error-box {
+      padding: var(--space-md);
+      background: var(--alert-error-bg);
+      border-left: 3px solid var(--alert-error-border);
+      border-radius: var(--radius-soft);
+      margin-top: var(--space-md);
+      color: var(--alert-error-text);
+      font-size: var(--font-size-sm);
+    }
+
+    /* =========================================
+       STATS GRID - Komplementär zu PaperCSS
+       ========================================= */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    .stat-card {
+      padding: var(--space-lg);
+      background: white;
+      border-radius: var(--radius-soft);
+      border-left: 3px solid var(--accent-main);
+    }
+
+    .stat-value {
+      font-size: var(--font-size-xl);
+      font-weight: 500;
+      font-family: var(--font-serif);
+      color: var(--accent-main);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-label {
+      font-size: var(--font-size-sm);
+      color: var(--ink-muted);
+    }
+
+    /* =========================================
+       VIEW MODE TOGGLE - Komplementär zu PaperCSS
+       ========================================= */
+    .view-mode-toggle {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+      background: white;
+      padding: var(--space-sm);
+      border-radius: var(--radius-soft);
+      border: 1px solid var(--line-thin);
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: var(--space-md);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-soft);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 500;
+      font-family: var(--font-main);
+      color: var(--ink-muted);
+    }
+
+    .mode-btn:hover {
+      background: var(--accent-faint);
+      color: var(--ink-main);
+    }
+
+    .mode-btn.active {
+      background: var(--accent-main);
+      color: white;
+    }
+
+    /* =========================================
+       CALENDAR / DAY BLOCKS - Komplementär zu PaperCSS
+       ========================================= */
+    .calendar-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .day-block {
+      padding: var(--space-lg);
+      background: white;
+      border-radius: var(--radius-soft);
+      border-left: 3px solid var(--accent-main);
+      transition: box-shadow 0.15s ease;
+    }
+
+    .day-block:hover {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .day-block.time-exceeded {
+      border-left-color: var(--alert-error-border);
+      background: var(--alert-error-bg);
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--line-thin);
+    }
+
+    .day-date {
+      font-weight: 500;
+      font-size: var(--font-size-lg);
+      color: var(--ink-main);
+      font-family: var(--font-serif);
+    }
+
+    .day-total {
+      color: var(--ink-muted);
+      font-size: var(--font-size-sm);
+    }
+
+    .session-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .session-item {
+      padding: var(--space-md);
+      background: var(--paper-bg);
+      border-radius: var(--radius-soft);
+      display: flex;
+      align-items: start;
+      gap: var(--space-md);
+    }
+
+    /* =========================================
+       CHECKBOX (PAPER STYLE) - Komplementär zu PaperCSS
+       ========================================= */
+    .checkbox {
+      width: var(--checkbox-size);
+      height: var(--checkbox-size);
+      border: var(--checkbox-border);
+      border-radius: 2px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      transition: all 0.15s ease;
+    }
+
+    .checkbox:hover {
+      border-color: var(--accent-main);
+      background: var(--accent-faint);
+    }
+
+    .checkbox.checked::after {
+      content: "✔";
+      font-size: 0.75em;
+      color: var(--checkbox-check);
+    }
+
+    .session-content {
+      flex: 1;
+    }
+
+    .session-title {
+      font-weight: 500;
+      color: var(--ink-main);
+      margin-bottom: var(--space-xs);
+    }
+
+    .session-meta {
+      font-size: var(--font-size-xs);
+      color: var(--ink-faint);
+    }
+
+    /* =========================================
+       WEEK TABLE - Komplementär zu PaperCSS
+       ========================================= */
+    .week-container {
+      margin-bottom: var(--space-xl);
+    }
+
+    .week-title {
+      font-family: var(--font-serif);
+      font-size: var(--font-size-lg);
+      font-weight: 500;
+      margin-bottom: var(--space-md);
+      color: var(--ink-main);
+    }
+
+    .week-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: var(--radius-soft);
+      overflow: hidden;
+    }
+
+    .week-table th {
+      background: var(--accent-main);
+      color: white;
+      padding: var(--space-md);
+      text-align: left;
+      font-weight: 500;
+      font-size: var(--font-size-sm);
+      border-bottom: 2px solid var(--accent-dark);
+    }
+
+    .week-table td {
+      padding: var(--space-md);
+      border-bottom: 1px solid var(--line-thin);
+      vertical-align: top;
+    }
+
+    .week-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .week-cell {
+      min-height: 80px;
+    }
+
+    .week-day-total {
+      font-size: var(--font-size-xs);
+      color: var(--ink-muted);
+      font-weight: 500;
+      margin-bottom: var(--space-sm);
+    }
+
+    .week-day-total.exceeded {
+      color: var(--alert-error-text);
+    }
+
+    .week-session {
+      padding: var(--space-sm);
+      background: var(--paper-bg);
+      border-radius: var(--radius-soft);
+      margin-bottom: var(--space-sm);
+      font-size: var(--font-size-sm);
+      border-left: 2px solid var(--accent-main);
+    }
+
+    .week-session.initial {
+      border-left-color: var(--accent-main);
+    }
+
+    .week-session.repetition {
+      border-left-color: var(--ink-faint);
+      background: var(--paper-bg-soft);
+    }
+
+    .week-session-title {
+      font-weight: 500;
+      margin-bottom: var(--space-xs);
+      color: var(--ink-main);
+    }
+
+    .week-session-meta {
+      font-size: var(--font-size-xs);
+      color: var(--ink-faint);
+    }
+
+    /* =========================================
+       PRIORITY BADGES - Komplementär zu PaperCSS
+       ========================================= */
+    .priority-badge {
+      display: inline-block;
+      padding: 2px var(--space-sm);
+      border-radius: var(--radius-soft);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      margin-left: var(--space-sm);
+    }
+
+    .priority-high {
+      background: var(--alert-error-bg);
+      color: var(--alert-error-text);
+    }
+
+    .priority-medium {
+      background: var(--alert-warning-bg);
+      color: var(--alert-warning-text);
+    }
+
+    .priority-low {
+      background: var(--accent-faint);
+      color: var(--accent-main);
+    }
+
+    /* =========================================
+       ACTION BAR - Komplementär zu PaperCSS
+       ========================================= */
+    .action-bar {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    /* =========================================
+       EMPTY STATE - Komplementär zu PaperCSS
+       ========================================= */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-xl);
+      color: var(--ink-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+    }
+
+    .empty-state h3 {
+      font-family: var(--font-serif);
+      color: var(--ink-main);
+      margin-bottom: var(--space-sm);
+    }
+
+    /* =========================================
+       PRINT STYLES - Komplementär zu PaperCSS
+       ========================================= */
+    .print-preview {
+      background: white;
+      padding: var(--space-xl);
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+      .nav-tabs, .btn, .topic-actions, .action-bar, .settings-panel, .view-mode-toggle {
+        display: none !important;
+      }
+      .print-preview {
+        padding: 0;
+      }
+    }
+
+    /* =========================================
+       RESPONSIVE - Komplementär zu PaperCSS
+       ========================================= */
+    @media (max-width: 768px) {
+      .app-container {
+        padding: var(--space-md);
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .week-table {
+        font-size: var(--font-size-sm);
+      }
+
+      .week-table th,
+      .week-table td {
+        padding: var(--space-sm);
+      }
+    }
+
+    /* =========================================
+       PaperCSS-Integration Verbesserungen
+       ========================================= */
+    /* Inputs und Selects mit PaperCSS harmonisieren */
+    input, select, textarea {
+      border-radius: var(--radius-soft);
+      font-family: var(--font-main);
+    }
+
+    /* PaperCSS Card-Ergänzungen */
+    .card {
+      border-radius: var(--radius-soft);
+    }
+
+    /* Verbesserte Button-Konsistenz */
+    .btn.btn-primary {
+      background-color: var(--accent-main);
+      border-color: var(--accent-main);
+    }
+
+    .btn.btn-primary:hover {
+      background-color: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    /* Bessere Form-Konsistenz */
+    .form-group label {
+      font-weight: 600;
+    }
+
+    /* =========================================
+   EXTERNAL LINK TABS - Komplementär zu PaperCSS
+   ========================================= */
+.tab.external {
+  background: var(--accent-faint);
+  border-left: 2px solid var(--accent-main);
+}
+
+.tab.external:hover {
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useCallback, memo } = React;
+
+    // Lernplan-Logik (optimiert für Performance)
+    const DIFFICULTY_CONFIG = {
+      1: { repetitions: 0, intervals: [], defaultTime: 15, label: 'Sehr leicht', priority: 1 },
+      2: { repetitions: 1, intervals: [3], defaultTime: 25, label: 'Leicht', priority: 2 },
+      3: { repetitions: 2, intervals: [2, 6], defaultTime: 35, label: 'Mittel', priority: 3 },
+      4: { repetitions: 3, intervals: [1, 4, 10], defaultTime: 45, label: 'Schwer', priority: 4 },
+      5: { repetitions: 4, intervals: [1, 3, 7, 16], defaultTime: 60, label: 'Sehr schwer', priority: 5 }
+    };
+
+    const WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+
+    // Memoized helper functions
+    const isFreeDayOrWeekend = (date, freeDays) => {
+      const dayOfWeek = date.getDay();
+      return freeDays.includes(dayOfWeek);
+    };
+
+    const getNextAvailableDate = (currentDate, freeDays) => {
+      const nextDate = new Date(currentDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      let maxIterations = 365; // Sicherheitscheck
+      while (isFreeDayOrWeekend(nextDate, freeDays) && maxIterations > 0) {
+        nextDate.setDate(nextDate.getDate() + 1);
+        maxIterations--;
+      }
+      
+      return nextDate;
+    };
+
+    function generateLearningPlan(topics, startDate = new Date(), freeDays = [], maxDailyMinutes = null) {
+      if (!topics || topics.length === 0) return [];
+
+      const sessions = [];
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+
+      // Starte am nächsten verfügbaren Tag falls Startdatum ein freier Tag ist
+      let currentStartDate = new Date(start);
+      if (isFreeDayOrWeekend(currentStartDate, freeDays)) {
+        currentStartDate = getNextAvailableDate(currentStartDate, freeDays);
+      }
+
+      // Generiere Sessions für alle Topics
+      for (const topic of topics) {
+        const config = DIFFICULTY_CONFIG[topic.difficulty];
+        const time = topic.estimated_time || config.defaultTime;
+        
+        // Erste Lernsession
+        sessions.push({
+          date: new Date(currentStartDate),
+          topicId: topic.id,
+          topicTitle: topic.title,
+          subject: topic.subject,
+          duration: time,
+          type: 'initial',
+          repetition: 0,
+          difficulty: topic.difficulty,
+          priority: config.priority
+        });
+
+        // Wiederholungen
+        let currentDate = new Date(currentStartDate);
+        for (let i = 0; i < config.intervals.length; i++) {
+          const interval = config.intervals[i];
+          
+          // Addiere Intervall-Tage unter Berücksichtigung freier Tage
+          for (let j = 0; j < interval; j++) {
+            currentDate = getNextAvailableDate(currentDate, freeDays);
+          }
+          
+          sessions.push({
+            date: new Date(currentDate),
+            topicId: topic.id,
+            topicTitle: topic.title,
+            subject: topic.subject,
+            duration: Math.round(time * 0.7),
+            type: 'repetition',
+            repetition: i + 1,
+            difficulty: topic.difficulty,
+            priority: config.priority
+          });
+        }
+      }
+
+      // Sortiere nach Datum, dann nach Priorität
+      sessions.sort((a, b) => {
+        const dateCompare = a.date - b.date;
+        if (dateCompare !== 0) return dateCompare;
+        return b.priority - a.priority;
+      });
+
+      // Wenn maxDailyMinutes gesetzt ist, verteile Sessions
+      if (maxDailyMinutes && maxDailyMinutes > 0) {
+        const redistributed = [];
+        const dayTimeMap = new Map();
+
+        for (const session of sessions) {
+          let targetDate = new Date(session.date);
+          let attempts = 0;
+          const maxAttempts = 365;
+
+          while (attempts < maxAttempts) {
+            // Überspringe freie Tage
+            if (isFreeDayOrWeekend(targetDate, freeDays)) {
+              targetDate = getNextAvailableDate(targetDate, freeDays);
+              attempts++;
+              continue;
+            }
+
+            const dateKey = targetDate.toISOString().split('T')[0];
+            const dayTotal = dayTimeMap.get(dateKey) || 0;
+
+            if (dayTotal + session.duration <= maxDailyMinutes) {
+              dayTimeMap.set(dateKey, dayTotal + session.duration);
+              redistributed.push({
+                ...session,
+                date: new Date(targetDate),
+                wasRescheduled: session.date.getTime() !== targetDate.getTime()
+              });
+              break;
+            } else {
+              targetDate = getNextAvailableDate(targetDate, freeDays);
+              attempts++;
+            }
+          }
+
+          // Fallback wenn kein Platz gefunden wurde
+          if (attempts >= maxAttempts) {
+            redistributed.push({
+              ...session,
+              wasRescheduled: true
+            });
+          }
+        }
+
+        return redistributed;
+      }
+
+      return sessions;
+    }
+
+    // Optimierte Gruppierung
+    function groupSessionsByDay(sessions) {
+      if (!sessions || sessions.length === 0) return [];
+
+      const grouped = new Map();
+      
+      for (const session of sessions) {
+        const dateKey = session.date.toISOString().split('T')[0];
+        
+        if (!grouped.has(dateKey)) {
+          grouped.set(dateKey, {
+            date: session.date,
+            sessions: [],
+            totalTime: 0
+          });
+        }
+        
+        const day = grouped.get(dateKey);
+        day.sessions.push(session);
+        day.totalTime += session.duration;
+      }
+
+      return Array.from(grouped.values()).sort((a, b) => a.date - b.date);
+    }
+
+    function groupSessionsByWeek(sessions) {
+      if (!sessions || sessions.length === 0) return [];
+
+      const weeks = [];
+      let currentWeek = null;
+
+      for (const session of sessions) {
+        const date = session.date;
+        const dayOfWeek = date.getDay();
+        
+        // Nur Wochentage Mo-Fr berücksichtigen
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+        // Finde Montag dieser Woche
+        const monday = new Date(date);
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        monday.setDate(date.getDate() - diff);
+        monday.setHours(0, 0, 0, 0);
+        
+        const weekKey = monday.toISOString();
+
+        if (!currentWeek || currentWeek.weekStart !== weekKey) {
+          currentWeek = {
+            weekStart: weekKey,
+            weekStartDate: new Date(monday),
+            days: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+          };
+          weeks.push(currentWeek);
+        }
+
+        currentWeek.days[dayOfWeek].push(session);
+      }
+
+      return weeks;
+    }
+
+    function exportToCSV(topics, sessions) {
+      if (sessions) {
+        // Plan-Export
+        const headers = ['Datum', 'Thema', 'Fach', 'Dauer (Min)', 'Typ', 'Wiederholung'];
+        const rows = sessions.map(s => [
+          s.date.toLocaleDateString('de-DE'),
+          s.topicTitle,
+          s.subject || '',
+          s.duration,
+          s.type === 'initial' ? 'Erstlernen' : 'Wiederholung',
+          s.repetition || ''
+        ]);
+        
+        return [headers, ...rows].map(row => row.join(',')).join('\n');
+      } else {
+        // Topic-Export
+        const headers = ['title', 'difficulty', 'subject', 'estimated_time', 'notes'];
+        const rows = topics.map(t => [
+          t.title,
+          t.difficulty,
+          t.subject || '',
+          t.estimated_time || '',
+          t.notes || ''
+        ]);
+        
+        return [headers, ...rows].map(row => row.join(',')).join('\n');
+      }
+    }
+
+    function parseCSV(csvText) {
+      const lines = csvText.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      const topics = [];
+      const errors = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        const topic = {};
+        
+        headers.forEach((header, index) => {
+          if (values[index]) {
+            topic[header] = values[index];
+          }
+        });
+
+        // Validierung
+        if (!topic.title) {
+          errors.push(`Zeile ${i + 1}: Titel fehlt`);
+          continue;
+        }
+
+        const difficulty = parseInt(topic.difficulty);
+        if (!difficulty || difficulty < 1 || difficulty > 5) {
+          errors.push(`Zeile ${i + 1}: Schwierigkeit muss 1-5 sein`);
+          continue;
+        }
+
+        topics.push({
+          id: Date.now() + i,
+          title: topic.title,
+          difficulty: difficulty,
+          subject: topic.subject || '',
+          estimated_time: topic.estimated_time ? parseInt(topic.estimated_time) : null,
+          notes: topic.notes || ''
+        });
+      }
+
+      return { topics, errors };
+    }
+
+    // Hauptkomponente
+    function LernplanApp() {
+      const [activeTab, setActiveTab] = useState('topics');
+      const [topics, setTopics] = useState([]);
+      const [formData, setFormData] = useState({
+        title: '',
+        difficulty: 3,
+        subject: '',
+        estimated_time: '',
+        notes: ''
+      });
+      const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+      const [freeDays, setFreeDays] = useState([]);
+      const [maxDailyMinutes, setMaxDailyMinutes] = useState('');
+      const [calendarViewMode, setCalendarViewMode] = useState('checklist');
+
+      // Memoized Sessions-Berechnung (nur neu bei Änderung)
+      const sessions = useMemo(() => {
+        if (topics.length === 0) return [];
+        const max = maxDailyMinutes && maxDailyMinutes.trim() !== '' ? parseInt(maxDailyMinutes) : null;
+        return generateLearningPlan(topics, new Date(startDate), freeDays, max);
+      }, [topics, startDate, freeDays, maxDailyMinutes]);
+
+      const dayGroups = useMemo(() => groupSessionsByDay(sessions), [sessions]);
+      const weekGroups = useMemo(() => groupSessionsByWeek(sessions), [sessions]);
+
+      // Optimierte Stats-Berechnung
+      const stats = useMemo(() => {
+        const warnings = [];
+        
+        if (maxDailyMinutes && maxDailyMinutes.trim() !== '') {
+          const max = parseInt(maxDailyMinutes);
+          const exceededDays = dayGroups.filter(day => day.totalTime > max);
+          
+          exceededDays.forEach(day => {
+            warnings.push(`${day.date.toLocaleDateString('de-DE')}: ${day.totalTime} Min (Limit: ${max} Min)`);
+          });
+        }
+
+        return {
+          totalTopics: topics.length,
+          totalSessions: sessions.length,
+          totalHours: Math.round(sessions.reduce((sum, s) => sum + s.duration, 0) / 60),
+          avgDifficulty: topics.length > 0 
+            ? (topics.reduce((sum, t) => sum + t.difficulty, 0) / topics.length).toFixed(1)
+            : 0,
+          warnings
+        };
+      }, [topics, sessions, dayGroups, maxDailyMinutes]);
+
+      // Memoized Callbacks
+      const handleAddTopic = useCallback((e) => {
+        e.preventDefault();
+        if (!formData.title.trim()) return;
+
+        const newTopic = {
+          id: Date.now(),
+          ...formData,
+          estimated_time: formData.estimated_time ? parseInt(formData.estimated_time) : null
+        };
+
+        setTopics(prev => [...prev, newTopic]);
+        setFormData({
+          title: '',
+          difficulty: 3,
+          subject: '',
+          estimated_time: '',
+          notes: ''
+        });
+      }, [formData]);
+
+      const handleDeleteTopic = useCallback((id) => {
+        setTopics(prev => prev.filter(t => t.id !== id));
+      }, []);
+
+      const toggleFreeDay = useCallback((dayIndex) => {
+        setFreeDays(prev => {
+          if (prev.includes(dayIndex)) {
+            return prev.filter(d => d !== dayIndex);
+          }
+          return [...prev, dayIndex].sort((a, b) => a - b);
+        });
+      }, []);
+
+      const handleCSVImport = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const { topics: imported, errors } = parseCSV(event.target.result);
+          
+          if (errors.length > 0) {
+            alert('Import-Fehler:\n' + errors.join('\n'));
+          }
+          
+          if (imported.length > 0) {
+            setTopics([...topics, ...imported]);
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      const handleExportTopics = () => {
+        const csv = exportToCSV(topics);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'topics.csv';
+        a.click();
+      };
+
+      const handleExportPlan = () => {
+        const csv = exportToCSV(null, sessions);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lernplan.csv';
+        a.click();
+      };
+
+      const handlePrint = () => {
+        window.print();
+      };
+
+      return (
+        <div className="app-container">
+          <header>
+            <h1>📚 Lernmatrix</h1>
+            <p className="tagline">Intelligenter Spacing-Algorithmus für nachhaltiges Lernen</p>
+          </header>
+
+          <nav className="nav-tabs">
+            <button 
+              className={`tab ${activeTab === 'topics' ? 'active' : ''}`}
+              onClick={() => setActiveTab('topics')}
+            >
+              Themen
+            </button>
+            <button 
+              className={`tab ${activeTab === 'calendar' ? 'active' : ''}`}
+              onClick={() => setActiveTab('calendar')}
+            >
+              Lernplan
+            </button>
+            <button 
+              className={`tab ${activeTab === 'print' ? 'active' : ''}`}
+              onClick={() => setActiveTab('print')}
+            >
+              Druckansicht
+            </button>
+            <button 
+  className={`tab external ${activeTab === 'studybeast' ? 'active' : ''}`}
+  onClick={() => window.open('StudyBeastGamification.html', '_blank')}
+>
+  🎮 StudyBeast
+</button>
+<button 
+  className={`tab external ${activeTab === 'lernpfad' ? 'active' : ''}`}
+  onClick={() => window.open('LernpfadBeast.html', '_blank')}
+>
+  🛤️ Lernpfad
+</button>
+          </nav>
+
+          {activeTab === 'topics' && (
+            <div className="view">
+              <div className="action-bar">
+                <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                  📥 CSV importieren
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    className="file-input"
+                    onChange={handleCSVImport}
+                  />
+                </label>
+                {topics.length > 0 && (
+                  <button className="btn btn-secondary" onClick={handleExportTopics}>
+                    📤 Topics exportieren
+                  </button>
+                )}
+              </div>
+
+              <form className="topic-form" onSubmit={handleAddTopic}>
+                <div className="form-group">
+                  <label>Thema *</label>
+                  <input
+                    type="text"
+                    className="input-block"
+                    placeholder="z.B. Passiv im Englischen"
+                    value={formData.title}
+                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fach</label>
+                    <input
+                      type="text"
+                      className="input-block"
+                      placeholder="z.B. Englisch"
+                      value={formData.subject}
+                      onChange={e => setFormData({ ...formData, subject: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Geschätzte Zeit (Min)</label>
+                    <input
+                      type="number"
+                      className="input-block"
+                      placeholder="Optional"
+                      value={formData.estimated_time}
+                      onChange={e => setFormData({ ...formData, estimated_time: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Schwierigkeit *</label>
+                  <div className="difficulty-selector">
+                    {[1, 2, 3, 4, 5].map(level => (
+                      <button
+                        key={level}
+                        type="button"
+                        className={`diff-btn diff-${level} ${formData.difficulty === level ? 'active' : ''}`}
+                        onClick={() => setFormData({ ...formData, difficulty: level })}
+                      >
+                        {level}<br />
+                        <small>{DIFFICULTY_CONFIG[level].label}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Notizen</label>
+                  <textarea
+                    className="input-block"
+                    placeholder="Zusätzliche Informationen..."
+                    value={formData.notes}
+                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary">
+                  ✓ Thema hinzufügen
+                </button>
+              </form>
+
+              {topics.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">📝</div>
+                  <h3>Noch keine Themen</h3>
+                  <p>Füge dein erstes Lernthema hinzu oder importiere eine CSV-Datei</p>
+                </div>
+              ) : (
+                <div className="topic-list">
+                  {topics.map(topic => (
+                    <div key={topic.id} className={`topic-card diff-${topic.difficulty}`}>
+                      <div className="topic-header">
+                        <div>
+                          <div className="topic-title">{topic.title}</div>
+                          <div className="topic-meta">
+                            {topic.subject && <span className="meta-badge">📚 {topic.subject}</span>}
+                            <span className="meta-badge">
+                              🎯 {DIFFICULTY_CONFIG[topic.difficulty].label}
+                            </span>
+                            <span className="meta-badge">
+                              ⏱️ {topic.estimated_time || DIFFICULTY_CONFIG[topic.difficulty].defaultTime} Min
+                            </span>
+                            <span className="meta-badge">
+                              🔁 {DIFFICULTY_CONFIG[topic.difficulty].repetitions} Wdh.
+                            </span>
+                          </div>
+                        </div>
+                        <div className="topic-actions">
+                          <button 
+                            className="icon-btn"
+                            onClick={() => handleDeleteTopic(topic.id)}
+                            title="Löschen"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                      {topic.notes && (
+                        <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#718096' }}>
+                          {topic.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'calendar' && (
+            <div className="view">
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-value">{stats.totalTopics}</div>
+                  <div className="stat-label">Themen</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{stats.totalSessions}</div>
+                  <div className="stat-label">Lernsessions</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{stats.totalHours}h</div>
+                  <div className="stat-label">Gesamtzeit</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{stats.avgDifficulty}</div>
+                  <div className="stat-label">Ø Schwierigkeit</div>
+                </div>
+              </div>
+
+              <div className="settings-panel">
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem' }}>⚙️ Einstellungen</h3>
+                
+                <div className="settings-grid">
+                  <div className="form-group">
+                    <label>Startdatum</label>
+                    <input
+                      type="date"
+                      className="input-block"
+                      value={startDate}
+                      onChange={e => setStartDate(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Max. Zeit pro Tag (Minuten)</label>
+                    <input
+                      type="number"
+                      className="input-block"
+                      placeholder="z.B. 120 (optional)"
+                      value={maxDailyMinutes}
+                      onChange={e => setMaxDailyMinutes(e.target.value)}
+                      min="15"
+                      step="15"
+                    />
+                    {maxDailyMinutes && (
+                      <div style={{ fontSize: '0.75rem', color: '#718096', marginTop: '0.25rem' }}>
+                        Sessions werden automatisch verteilt
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '1rem' }}>
+                  <label>Freie Tage (werden übersprungen)</label>
+                  <div className="day-selector">
+                    {['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'].map((day, index) => {
+                      const dayIndex = index === 6 ? 0 : index + 1; // Sonntag = 0
+                      const isFree = freeDays.includes(dayIndex);
+                      return (
+                        <button
+                          key={dayIndex}
+                          type="button"
+                          className={`day-chip ${isFree ? 'free' : ''}`}
+                          onClick={() => toggleFreeDay(dayIndex)}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {stats.warnings.length > 0 && (
+                <div className="warning-box">
+                  <strong>⚠️ Warnung: Zeitlimit überschritten</strong>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                    {stats.warnings.map((w, i) => (
+                      <div key={i}>• {w}</div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                    Tipp: Erhöhe das Zeitlimit oder verteile Topics auf mehr Tage.
+                  </div>
+                </div>
+              )}
+
+              <div className="action-bar">
+                {sessions.length > 0 && (
+                  <button className="btn btn-secondary" onClick={handleExportPlan}>
+                    📤 Plan exportieren
+                  </button>
+                )}
+              </div>
+
+              {dayGroups.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">📅</div>
+                  <h3>Kein Plan generiert</h3>
+                  <p>Füge Themen hinzu, um einen Lernplan zu erstellen</p>
+                </div>
+              ) : (
+                <>
+                  <div className="view-mode-toggle">
+                    <button
+                      className={`mode-btn ${calendarViewMode === 'checklist' ? 'active' : ''}`}
+                      onClick={() => setCalendarViewMode('checklist')}
+                    >
+                      📋 Checkliste
+                    </button>
+                    <button
+                      className={`mode-btn ${calendarViewMode === 'week' ? 'active' : ''}`}
+                      onClick={() => setCalendarViewMode('week')}
+                    >
+                      📅 Wochenübersicht
+                    </button>
+                  </div>
+
+                  {calendarViewMode === 'checklist' ? (
+                    <div className="calendar-grid">
+                      {dayGroups.map((day, index) => {
+                        const showWeekSeparator = index > 0 && 
+                          Math.floor((day.date - dayGroups[0].date) / (1000 * 60 * 60 * 24)) % 7 === 0;
+                        const isOverLimit = maxDailyMinutes && day.totalTime > parseInt(maxDailyMinutes);
+                        
+                        return (
+                          <React.Fragment key={day.date.toISOString()}>
+                            {showWeekSeparator && (
+                              <div className="week-separator">
+                                📍 Woche {Math.floor((day.date - dayGroups[0].date) / (1000 * 60 * 60 * 24 * 7)) + 1}
+                              </div>
+                            )}
+                            <div className={`day-block ${isOverLimit ? 'time-exceeded' : ''}`}>
+                              <div className="day-header">
+                                <div className="day-date">
+                                  {day.date.toLocaleDateString('de-DE', { 
+                                    weekday: 'long', 
+                                    day: '2-digit', 
+                                    month: 'long' 
+                                  })}
+                                </div>
+                                <div className="day-total">
+                                  ⏱️ {day.totalTime} Min
+                                  {isOverLimit && <span style={{ color: '#e53e3e', marginLeft: '0.5rem' }}>⚠️</span>}
+                                </div>
+                              </div>
+                              <div className="session-list">
+                                {day.sessions.map((session, i) => (
+                                  <div key={i} className="session-item">
+                                    <div className="checkbox"></div>
+                                    <div className="session-content">
+                                      <div className="session-title">
+                                        {session.topicTitle}
+                                        {session.type === 'repetition' && (
+                                          <span style={{ 
+                                            marginLeft: '0.5rem', 
+                                            fontSize: '0.875rem',
+                                            color: '#718096'
+                                          }}>
+                                            (Wdh. {session.repetition})
+                                          </span>
+                                        )}
+                                        {session.difficulty >= 4 && (
+                                          <span className="priority-badge priority-high">WICHTIG</span>
+                                        )}
+                                        {session.difficulty === 3 && (
+                                          <span className="priority-badge priority-medium">NORMAL</span>
+                                        )}
+                                      </div>
+                                      <div className="session-meta">
+                                        {session.subject && `${session.subject} • `}
+                                        {session.duration} Min • 
+                                        {session.type === 'initial' ? ' Erstlernen' : ' Wiederholung'}
+                                        {session.wasRescheduled && ' • 🔄 Verschoben'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div>
+                      {weekGroups.map((week, weekIndex) => (
+                        <div key={week.weekStart} className="week-container">
+                          <h3 className="week-title">
+                            📅 Woche {weekIndex + 1} – {week.weekStartDate.toLocaleDateString('de-DE', { 
+                              day: '2-digit', 
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </h3>
+                          <table className="week-table">
+                            <thead>
+                              <tr>
+                                <th>Montag</th>
+                                <th>Dienstag</th>
+                                <th>Mittwoch</th>
+                                <th>Donnerstag</th>
+                                <th>Freitag</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                {[1, 2, 3, 4, 5].map(dayNum => {
+                                  const daySessions = week.days[dayNum] || [];
+                                  const totalTime = daySessions.reduce((sum, s) => sum + s.duration, 0);
+                                  const isOverLimit = maxDailyMinutes && maxDailyMinutes.trim() !== '' && totalTime > parseInt(maxDailyMinutes);
+                                  
+                                  return (
+                                    <td key={dayNum} className="week-cell">
+                                      {daySessions.length > 0 && (
+                                        <div className={`week-day-total ${isOverLimit ? 'exceeded' : ''}`}>
+                                          ⏱️ {totalTime} Min {isOverLimit && '⚠️'}
+                                        </div>
+                                      )}
+                                      {daySessions.map((session, i) => (
+                                        <div 
+                                          key={i} 
+                                          className={`week-session ${session.type}`}
+                                        >
+                                          <div className="week-session-title">
+                                            {session.topicTitle}
+                                            {session.difficulty >= 4 && ' 🔥'}
+                                          </div>
+                                          <div className="week-session-meta">
+                                            {session.type === 'initial' ? '📖' : `🔁 Wdh. ${session.repetition}`}
+                                            {' • '}
+                                            {session.duration}min
+                                            {session.subject && ` • ${session.subject}`}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'print' && (
+            <div className="view">
+              <div className="action-bar">
+                <button className="btn btn-primary" onClick={handlePrint}>
+                  🖨️ Drucken (A4 / A5)
+                </button>
+              </div>
+
+              {dayGroups.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">📄</div>
+                  <h3>Keine Druckansicht verfügbar</h3>
+                  <p>Erstelle zuerst einen Lernplan</p>
+                </div>
+              ) : (
+                <div className="print-preview">
+                  <h1 style={{ 
+                    fontSize: '2rem', 
+                    marginBottom: '0.5rem',
+                    textAlign: 'center'
+                  }}>
+                    Mein Lernplan
+                  </h1>
+                  <p style={{ 
+                    textAlign: 'center', 
+                    color: '#718096',
+                    marginBottom: '2rem',
+                    fontSize: '0.9rem'
+                  }}>
+                    {dayGroups[0].date.toLocaleDateString('de-DE')} – {dayGroups[dayGroups.length - 1].date.toLocaleDateString('de-DE')}
+                  </p>
+
+                  {dayGroups.map((day, index) => {
+                    const showWeekSeparator = index > 0 && 
+                      Math.floor((day.date - dayGroups[0].date) / (1000 * 60 * 60 * 24)) % 7 === 0;
+                    
+                    return (
+                      <React.Fragment key={day.date.toISOString()}>
+                        {showWeekSeparator && (
+                          <div style={{ 
+                            margin: '1.5rem 0',
+                            padding: '0.75rem 0',
+                            borderTop: '2px solid #e2e8f0',
+                            textAlign: 'center',
+                            fontWeight: '600',
+                            fontSize: '0.9rem'
+                          }}>
+                            Woche {Math.floor((day.date - dayGroups[0].date) / (1000 * 60 * 60 * 24 * 7)) + 1}
+                          </div>
+                        )}
+                        <div style={{ 
+                          marginBottom: '1.5rem',
+                          pageBreakInside: 'avoid'
+                        }}>
+                          <div style={{ 
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: '0.75rem',
+                            paddingBottom: '0.5rem',
+                            borderBottom: '1px solid #cbd5e0'
+                          }}>
+                            <strong style={{ fontSize: '1rem' }}>
+                              {day.date.toLocaleDateString('de-DE', { 
+                                weekday: 'long', 
+                                day: '2-digit', 
+                                month: 'long' 
+                              })}
+                            </strong>
+                            <span style={{ color: '#718096', fontSize: '0.875rem' }}>
+                              {day.totalTime} Min
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {day.sessions.map((session, i) => (
+                              <div key={i} style={{ 
+                                display: 'flex',
+                                alignItems: 'start',
+                                gap: '0.75rem',
+                                padding: '0.5rem 0'
+                              }}>
+                                <div style={{ 
+                                  width: '16px',
+                                  height: '16px',
+                                  border: '2px solid #cbd5e0',
+                                  borderRadius: '3px',
+                                  marginTop: '2px',
+                                  flexShrink: 0
+                                }}></div>
+                                <div style={{ flex: 1, fontSize: '0.9rem' }}>
+                                  <div style={{ fontWeight: '500' }}>
+                                    {session.topicTitle}
+                                    {session.type === 'repetition' && (
+                                      <span style={{ color: '#718096', fontSize: '0.85rem' }}>
+                                        {' '}(Wiederholung {session.repetition})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ color: '#718096', fontSize: '0.85rem' }}>
+                                    {session.subject && `${session.subject} • `}
+                                    {session.duration} Min
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<LernplanApp />, document.getElementById('root'));
+  </script>
+</body>
+</html>
