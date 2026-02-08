@@ -1,0 +1,1745 @@
+<!doctype html>
+<html lang="de" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KlasseFix 3.0 Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { box-sizing: border-box; font-family: 'Space Grotesk', sans-serif; }
+    html, body { height: 100%; width: 100%; }
+    #app { height: 100%; overflow-y: auto; }
+    .question-card { transition: all 0.3s ease; }
+    .question-card:hover { transform: translateY(-2px); }
+    .timer-bar { transition: width 0.1s linear; }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .grade-badge { animation: scaleIn 0.5s ease-out; }
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+    .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4b5563; transition: 0.4s; border-radius: 34px; }
+    .toggle-slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: 0.4s; border-radius: 50%; }
+    input:checked + .toggle-slider { background-color: #06b6d4; }
+    input:checked + .toggle-slider:before { transform: translateX(26px); }
+    .video-badge { background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444; padding: 0.5rem; border-radius: 0.5rem; }
+    .timeline-container { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+    .timeline-dot { width: 12px; height: 12px; border-radius: 50%; transition: all 0.3s; }
+    .timeline-dot.inactive { background-color: #475569; }
+    .timeline-dot.current { background-color: #06b6d4; box-shadow: 0 0 10px #06b6d4; }
+    .timeline-dot.completed { background-color: #10b981; }
+    .timeline-dot.skipped { background-color: #f97316; }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white">
+  <div id="app" class="w-full h-full overflow-y-auto"><!-- Start Screen -->
+   <div id="startScreen" class="min-h-full flex flex-col items-center justify-center p-6 fade-in">
+    <div class="text-center mb-8">
+     <h1 class="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent mb-3">KlasseFix 3.0 Pro</h1>
+     <p class="text-slate-400 text-lg">Der flexible Quiz-Trainer mit Zeitstrahl</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl"><button onclick="showScreen('editorScreen')" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 p-6 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-indigo-500/20">
+      <div class="text-3xl mb-2">
+       ✏️
+      </div>
+      <div class="font-semibold text-lg">
+       Quiz erstellen
+      </div>
+      <div class="text-sm text-indigo-200">
+       Mit/ohne Video
+      </div></button> <button onclick="showScreen('promptScreen')" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 p-6 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-pink-500/20">
+      <div class="text-3xl mb-2">
+       🤖
+      </div>
+      <div class="font-semibold text-lg">
+       AI Quiz Generator
+      </div>
+      <div class="text-sm text-pink-200">
+       Mit KI erstellen
+      </div></button> <label class="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 p-6 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-amber-500/20 cursor-pointer"> <input type="file" accept=".json" onchange="importQuiz(event)" class="hidden">
+      <div class="text-3xl mb-2">
+       📁
+      </div>
+      <div class="font-semibold text-lg">
+       JSON Import
+      </div>
+      <div class="text-sm text-amber-200">
+       Quiz hochladen
+      </div></label>
+    </div>
+   </div><!-- Prompt Screen -->
+   <div id="promptScreen" class="min-h-full p-6 hidden">
+    <div class="max-w-5xl mx-auto">
+     <div class="flex items-center justify-between mb-6"><button onclick="showScreen('startScreen')" class="text-slate-400 hover:text-white flex items-center gap-2 text-lg"> ← Zurück </button>
+      <h2 class="text-3xl font-bold text-pink-300">🤖 AI Quiz Generator</h2>
+      <div class="w-24"></div>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"><!-- Templates -->
+      <div class="lg:col-span-1">
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700 sticky top-6">
+        <h3 class="font-semibold text-lg mb-4 text-pink-300">📋 Template-Vorlagen</h3>
+        <div class="space-y-2"><button onclick="loadPromptTemplate('history')" class="w-full text-left bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-lg transition-all text-sm"> 📚 Geschichte </button> <button onclick="loadPromptTemplate('science')" class="w-full text-left bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-lg transition-all text-sm"> 🔬 Naturwissenschaften </button> <button onclick="loadPromptTemplate('languages')" class="w-full text-left bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-lg transition-all text-sm"> 🌐 Sprachen </button> <button onclick="loadPromptTemplate('math')" class="w-full text-left bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-lg transition-all text-sm"> 📐 Mathematik </button> <button onclick="loadPromptTemplate('custom')" class="w-full text-left bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-lg transition-all text-sm"> ⭐ Custom Template </button>
+        </div>
+       </div>
+      </div><!-- Main Editor -->
+      <div class="lg:col-span-2 space-y-4"><!-- Thema -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"><label class="block text-sm font-medium text-slate-300 mb-2">📝 Quiz-Thema</label> <input type="text" id="promptTopic" placeholder="z.B. Französische Revolution, Photosynthese, etc." class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+       </div><!-- Schwierigkeitsgrad -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"><label class="block text-sm font-medium text-slate-300 mb-3">⚡ Schwierigkeitsgrad</label>
+        <div class="flex gap-3"><button onclick="setDifficulty('easy')" class="difficulty-btn px-4 py-2 rounded-lg bg-emerald-600/30 border border-emerald-500/50 hover:bg-emerald-600/50 transition-all text-sm font-semibold" data-level="easy"> 🟢 Einfach </button> <button onclick="setDifficulty('medium')" class="difficulty-btn px-4 py-2 rounded-lg bg-yellow-600/30 border border-yellow-500/50 hover:bg-yellow-600/50 transition-all text-sm font-semibold" data-level="medium"> 🟡 Mittel </button> <button onclick="setDifficulty('hard')" class="difficulty-btn px-4 py-2 rounded-lg bg-red-600/30 border border-red-500/50 hover:bg-red-600/50 transition-all text-sm font-semibold" data-level="hard"> 🔴 Schwer </button>
+        </div>
+       </div><!-- Fragetypen -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"><label class="block text-sm font-medium text-slate-300 mb-3">🔘 Fragetypen (auswählen)</label>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3"><label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" value="multipleChoice" class="question-type-checkbox accent-pink-500 w-5 h-5" checked> <span class="text-sm">Multiple Choice</span> </label> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" value="trueFalse" class="question-type-checkbox accent-pink-500 w-5 h-5" checked> <span class="text-sm">Wahr/Falsch</span> </label> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" value="matching" class="question-type-checkbox accent-pink-500 w-5 h-5" checked> <span class="text-sm">Zuordnen</span> </label> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" value="textInput" class="question-type-checkbox accent-pink-500 w-5 h-5"> <span class="text-sm">Texteingabe</span> </label>
+        </div>
+       </div><!-- Anzahl Fragen -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"><label class="block text-sm font-medium text-slate-300 mb-2">🔢 Anzahl der Fragen</label> <input type="range" id="questionCount" min="3" max="20" value="8" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500" oninput="updateQuestionCountDisplay()">
+        <div class="text-center mt-2 text-lg font-semibold text-pink-400">
+         <span id="questionCountDisplay">8</span> Fragen
+        </div>
+       </div><!-- Prompt Texte -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"><label class="block text-sm font-medium text-slate-300 mb-2">💬 Prompt für KI (anpassbar)</label> <textarea id="aiPrompt" class="w-full h-64 bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none text-sm font-mono" placeholder="Prompt wird hier angezeigt..."></textarea>
+       </div><!-- Copy & Instructions -->
+       <div class="bg-pink-600/20 backdrop-blur rounded-2xl p-6 border border-pink-500/30">
+        <h3 class="font-semibold text-lg mb-3 text-pink-300">📋 Anleitung</h3>
+        <ol class="space-y-2 text-sm text-slate-300">
+         <li><strong>1.</strong> Passe das Thema und den Prompt an</li>
+         <li><strong>2.</strong> Klick auf "Prompt kopieren"</li>
+         <li><strong>3.</strong> Öffne ChatGPT/Claude und füge den Prompt ein</li>
+         <li><strong>4.</strong> Die KI wird dir JSON generieren</li>
+         <li><strong>5.</strong> Kopiere das JSON und importiere es hier</li>
+        </ol>
+       </div><!-- Action Buttons -->
+       <div class="flex gap-3 flex-wrap"><button onclick="copyPromptToClipboard()" class="bg-pink-600 hover:bg-pink-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all"> <span>📋</span> Prompt kopieren </button> <button onclick="downloadPrompt()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all"> <span>💾</span> Prompt speichern </button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- Editor Screen -->
+   <div id="editorScreen" class="min-h-full p-6 hidden">
+    <div class="max-w-6xl mx-auto">
+     <div class="flex items-center justify-between mb-6"><button onclick="showScreen('startScreen')" class="text-slate-400 hover:text-white flex items-center gap-2 text-lg"> ← Zurück </button>
+      <h2 class="text-3xl font-bold text-cyan-300">   ️ Quiz Editor</h2>
+      <div class="w-24"></div>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6"><!-- Main Editor -->
+      <div class="lg:col-span-3 space-y-6">
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"><label class="block text-sm font-medium text-slate-300 mb-2">📝 Thema / Titel</label> <input type="text" id="quizTitle" placeholder="z.B. Französische Revolution" class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+       </div><!-- Grade Scale -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700">
+        <h3 class="font-semibold text-lg mb-4 text-slate-200">📊 Notenschlüssel</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+         <div class="flex items-center gap-2"><span class="text-emerald-400 font-bold w-8">1:</span> <input type="number" id="grade1" value="90" min="0" max="100" class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-center text-sm"> <span class="text-slate-400 text-sm">%</span>
+         </div>
+         <div class="flex items-center gap-2"><span class="text-green-400 font-bold w-8">2:</span> <input type="number" id="grade2" value="75" min="0" max="100" class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-center text-sm"> <span class="text-slate-400 text-sm">%</span>
+         </div>
+         <div class="flex items-center gap-2"><span class="text-yellow-400 font-bold w-8">3:</span> <input type="number" id="grade3" value="60" min="0" max="100" class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-center text-sm"> <span class="text-slate-400 text-sm">%</span>
+         </div>
+         <div class="flex items-center gap-2"><span class="text-orange-400 font-bold w-8">4:</span> <input type="number" id="grade4" value="45" min="0" max="100" class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-center text-sm"> <span class="text-slate-400 text-sm">%</span>
+         </div>
+         <div class="flex items-center gap-2"><span class="text-red-400 font-bold w-8">5:</span> <input type="number" id="grade5" value="25" min="0" max="100" class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-center text-sm"> <span class="text-slate-400 text-sm">%</span>
+         </div>
+        </div>
+       </div><!-- Questions Container -->
+       <div id="questionsContainer" class="space-y-4"></div><!-- Add Question Buttons -->
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700">
+        <h3 class="font-semibold text-lg mb-4 text-slate-200">➕ Fragetypen hinzufügen</h3>
+        <div class="flex flex-wrap gap-3"><button onclick="addQuestion('trueFalse')" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm"> ✓✗ Wahr/Falsch </button> <button onclick="addQuestion('multipleChoice')" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm"> 🔘 Multiple Choice </button> <button onclick="addQuestion('matching')" class="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm"> 🔗 Zuordnen </button> <button onclick="addQuestion('textInput')" class="bg-pink-600 hover:bg-pink-500 px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm"> ⌨️ Texteingabe </button>
+        </div>
+       </div><!-- Action Buttons -->
+       <div class="flex flex-wrap gap-3"><button onclick="exportQuiz()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all"> <span>💾</span> JSON speichern </button> <button onclick="previewQuiz()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all"> <span>▶️</span> Starten </button> <button onclick="exportQuizAsTestPDF()" class="bg-violet-600 hover:bg-violet-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all"> <span>📝</span> Test-PDF erstellen </button>
+       </div>
+      </div><!-- Sidebar Stats -->
+      <div class="lg:col-span-1">
+       <div class="sticky top-6 space-y-4">
+        <div class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 backdrop-blur rounded-2xl p-6 border border-cyan-500/30">
+         <h3 class="font-semibold text-lg mb-3 text-cyan-300">📊 Quiz-Stats</h3>
+         <div class="text-sm text-slate-300 space-y-2">
+          <p>Fragen: <span id="questionCount" class="font-semibold text-cyan-300">0</span></p>
+          <p>Mit Video: <span id="videoQuestionCount" class="font-semibold text-red-400">0</span></p>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- Quiz Screen -->
+   <div id="quizScreen" class="min-h-full p-6 hidden">
+    <div class="max-w-5xl mx-auto"><!-- Timeline -->
+     <div class="mb-6 bg-slate-800/50 backdrop-blur rounded-2xl p-4 border border-slate-700">
+      <p class="text-xs text-slate-400 mb-3 font-semibold">📍 FORTSCHRITT</p>
+      <div class="timeline-container" id="timelineContainer"></div>
+     </div><!-- Header -->
+     <div class="flex items-center justify-between mb-4">
+      <div class="text-slate-400 font-semibold">
+       Frage <span id="currentQuestionNum">1</span> von <span id="totalQuestions">10</span>
+      </div>
+      <div id="quizTimer" class="bg-red-600/30 border border-red-500/50 px-4 py-2 rounded-xl font-mono text-lg hidden">
+       ⏱️ <span id="timerDisplay">00:00</span>
+      </div>
+     </div><!-- Timer Bar -->
+     <div class="h-1 bg-slate-700 rounded-full mb-4 hidden" id="timerBarContainer">
+      <div id="timerBar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
+     </div><!-- Main Content -->
+     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6"><!-- Video (Optional) -->
+      <div class="lg:col-span-1">
+       <div id="videoContainer" class="hidden">
+        <div class="bg-black rounded-xl overflow-hidden aspect-video mb-3 border-2 border-red-500/30">
+         <div id="quizVideoPlayer" style="width: 100%; height: 100%;"></div>
+        </div>
+       </div>
+      </div><!-- Question -->
+      <div id="questionGridCol" class="lg:col-span-3">
+       <div class="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700 overflow-hidden">
+        <div id="questionArea" class="p-8"></div>
+       </div>
+      </div>
+     </div><!-- Buttons -->
+     <div class="flex justify-between gap-4"><button onclick="skipQuestion()" class="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-semibold transition-all"> ⏭️ Überspringen </button> <button onclick="submitAnswer()" class="bg-cyan-600 hover:bg-cyan-500 px-8 py-3 rounded-xl font-semibold transition-all flex items-center gap-2"> ✓ Bestätigen </button>
+     </div>
+    </div>
+   </div><!-- Results Screen -->
+   <div id="resultsScreen" class="min-h-full p-6 hidden">
+    <div class="max-w-4xl mx-auto">
+     <div class="text-center mb-8 fade-in">
+      <h2 class="text-3xl font-bold mb-2">🎉 Ergebnisse</h2>
+      <p id="resultsTitle" class="text-slate-400 text-lg"></p>
+     </div>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-gradient-to-br from-cyan-600/30 to-blue-600/30 border border-cyan-500/30 rounded-2xl p-6 text-center">
+       <div id="scorePercent" class="text-4xl font-bold text-cyan-300 mb-2">
+        0%
+       </div>
+       <div class="text-slate-400">
+        Richtig beantwortet
+       </div>
+      </div>
+      <div class="bg-gradient-to-br from-emerald-600/30 to-teal-600/30 border border-emerald-500/30 rounded-2xl p-6 text-center">
+       <div id="timeTotal" class="text-4xl font-bold text-emerald-300 mb-2">
+        0:00
+       </div>
+       <div class="text-slate-400">
+        Gesamtzeit
+       </div>
+      </div>
+      <div class="bg-gradient-to-br from-amber-600/30 to-orange-600/30 border border-amber-500/30 rounded-2xl p-6 text-center">
+       <div id="gradeDisplay" class="text-5xl font-bold grade-badge"></div>
+       <div class="text-slate-400 mt-2">
+        Note
+       </div>
+      </div>
+     </div>
+     <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700 mb-6">
+      <h3 class="font-semibold text-lg mb-4 text-slate-200">📋 Auswertung</h3>
+      <div id="detailedResults" class="space-y-3 max-h-96 overflow-y-auto"></div>
+     </div>
+     <div class="flex flex-wrap gap-3 justify-center"><button onclick="exportResultsPDF()" class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2"> 📊 Quiz-Ergebnisse PDF </button> <button onclick="exportAsClasswork()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2"> 📋 Klassenarbeit PDF </button> <button onclick="exportQuizAsTestPDF()" class="bg-violet-600 hover:bg-violet-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2"> 📝 Test-PDF erstellen </button> <button onclick="retryQuiz()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-semibold flex items-center gap-2"> 🔄 Nochmal versuchen </button> <button onclick="showScreen('startScreen')" class="bg-slate-600 hover:bg-slate-500 px-6 py-3 rounded-xl font-semibold"> Zur Startseite </button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    let currentQuiz = null;
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let answers = [];
+    let questionTimes = [];
+    let timerInterval = null;
+    let questionStartTime = null;
+    let questionCounter = 0;
+    let currentSelection = null;
+    let matchingSelections = [];
+    let youtubePlayer = null;
+    let videoCheckInterval = null;
+    let currentDifficulty = 'medium';
+
+    // Prompt Templates für verschiedene Fächer
+    const promptTemplates = {
+      history: `Du bist ein erfahrener Geschichtslehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+
+THEMA: {TOPIC}
+
+ANFORDERUNGEN:
+- Erstelle genau {COUNT} Fragen zum Thema
+- Verwende folgende Fragetypen: {TYPES}
+- Schwierigkeitsgrad: {DIFFICULTY} ({DIFFICULTY_DESC})
+- Fragen sollen methodisch aufgebaut sein (vom einfachen zum Komplexen)
+- Berücksichtige historische Fakten, Zusammenhänge und Analysen
+
+WICHTIG - Das JSON MUSS genau dieses Format haben (keine anderen Strukturen!):
+\`\`\`json
+{
+  "title": "{TOPIC}",
+  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
+  "questions": [
+    {
+      "type": "multipleChoice",
+      "question": "Frage?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 1,
+      "timer": 30
+    },
+    {
+      "type": "trueFalse",
+      "question": "Aussage?",
+      "answer": true,
+      "timer": 20
+    },
+    {
+      "type": "matching",
+      "question": "Zuordnungsaufgabe?",
+      "pairs": [
+        { "left": "Begriff 1", "right": "Definition 1" },
+        { "left": "Begriff 2", "right": "Definition 2" }
+      ],
+      "timer": 40
+    },
+    {
+      "type": "textInput",
+      "question": "Textfrage?",
+      "answer": "Korrekte Antwort",
+      "fuzzy": true,
+      "timer": 30
+    }
+  ]
+}
+\`\`\`
+
+Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
+
+      science: `Du bist ein erfahrener Naturwissenschaftslehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+
+THEMA: {TOPIC}
+
+ANFORDERUNGEN:
+- Erstelle genau {COUNT} Fragen zum Thema
+- Verwende folgende Fragetypen: {TYPES}
+- Schwierigkeitsgrad: {DIFFICULTY} ({DIFFICULTY_DESC})
+- Fragen sollen wissenschaftlich korrekt und experimentell relevant sein
+- Berücksichtige Konzepte, Methoden und Anwendungen
+
+WICHTIG - Das JSON MUSS genau dieses Format haben:
+\`\`\`json
+{
+  "title": "{TOPIC}",
+  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
+  "questions": [
+    {
+      "type": "multipleChoice",
+      "question": "Frage?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 1,
+      "timer": 30
+    },
+    {
+      "type": "trueFalse",
+      "question": "Aussage?",
+      "answer": true,
+      "timer": 20
+    },
+    {
+      "type": "matching",
+      "question": "Zuordnungsaufgabe?",
+      "pairs": [
+        { "left": "Begriff 1", "right": "Definition 1" },
+        { "left": "Begriff 2", "right": "Definition 2" }
+      ],
+      "timer": 40
+    },
+    {
+      "type": "textInput",
+      "question": "Textfrage?",
+      "answer": "Korrekte Antwort",
+      "fuzzy": true,
+      "timer": 30
+    }
+  ]
+}
+\`\`\`
+
+Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
+
+      languages: `Du bist ein erfahrener Sprachlehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+
+THEMA: {TOPIC}
+
+ANFORDERUNGEN:
+- Erstelle genau {COUNT} Fragen zum Thema
+- Verwende folgende Fragetypen: {TYPES}
+- Schwierigkeitsgrad: {DIFFICULTY} ({DIFFICULTY_DESC})
+- Fragen sollen Vokabeln, Grammatik, Aussprache und kulturelle Aspekte abdecken
+- Achte auf korrekte Orthographie und idiomatische Wendungen
+
+WICHTIG - Das JSON MUSS genau dieses Format haben:
+\`\`\`json
+{
+  "title": "{TOPIC}",
+  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
+  "questions": [
+    {
+      "type": "multipleChoice",
+      "question": "Frage?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 1,
+      "timer": 30
+    },
+    {
+      "type": "trueFalse",
+      "question": "Aussage?",
+      "answer": true,
+      "timer": 20
+    },
+    {
+      "type": "matching",
+      "question": "Zuordnungsaufgabe?",
+      "pairs": [
+        { "left": "Begriff 1", "right": "Definition 1" },
+        { "left": "Begriff 2", "right": "Definition 2" }
+      ],
+      "timer": 40
+    },
+    {
+      "type": "textInput",
+      "question": "Textfrage?",
+      "answer": "Korrekte Antwort",
+      "fuzzy": true,
+      "timer": 30
+    }
+  ]
+}
+\`\`\`
+
+Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
+
+      math: `Du bist ein erfahrener Mathematiklehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+
+THEMA: {TOPIC}
+
+ANFORDERUNGEN:
+- Erstelle genau {COUNT} Fragen zum Thema
+- Verwende folgende Fragetypen: {TYPES}
+- Schwierigkeitsgrad: {DIFFICULTY} ({DIFFICULTY_DESC})
+- Fragen sollen mathematisch korrekt und verschiedene Lösungswege abdecken
+- Verwende präzise mathematische Notation und Terminologie
+
+WICHTIG - Das JSON MUSS genau dieses Format haben:
+\`\`\`json
+{
+  "title": "{TOPIC}",
+  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
+  "questions": [
+    {
+      "type": "multipleChoice",
+      "question": "Frage?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 1,
+      "timer": 30
+    },
+    {
+      "type": "trueFalse",
+      "question": "Aussage?",
+      "answer": true,
+      "timer": 20
+    },
+    {
+      "type": "matching",
+      "question": "Zuordnungsaufgabe?",
+      "pairs": [
+        { "left": "Begriff 1", "right": "Definition 1" },
+        { "left": "Begriff 2", "right": "Definition 2" }
+      ],
+      "timer": 40
+    },
+    {
+      "type": "textInput",
+      "question": "Textfrage?",
+      "answer": "Korrekte Antwort",
+      "fuzzy": true,
+      "timer": 30
+    }
+  ]
+}
+\`\`\`
+
+Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
+
+      custom: `Du bist ein Experte für Lerninhalte. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+
+THEMA: {TOPIC}
+
+ANFORDERUNGEN:
+- Erstelle genau {COUNT} Fragen zum Thema
+- Verwende folgende Fragetypen: {TYPES}
+- Schwierigkeitsgrad: {DIFFICULTY} ({DIFFICULTY_DESC})
+- Fragen sollen gut strukturiert und verständlich sein
+- Achte auf Vielfalt in den Frageformaten
+
+WICHTIG - Das JSON MUSS genau dieses Format haben:
+\`\`\`json
+{
+  "title": "{TOPIC}",
+  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
+  "questions": [
+    {
+      "type": "multipleChoice",
+      "question": "Frage?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 1,
+      "timer": 30
+    },
+    {
+      "type": "trueFalse",
+      "question": "Aussage?",
+      "answer": true,
+      "timer": 20
+    },
+    {
+      "type": "matching",
+      "question": "Zuordnungsaufgabe?",
+      "pairs": [
+        { "left": "Begriff 1", "right": "Definition 1" },
+        { "left": "Begriff 2", "right": "Definition 2" }
+      ],
+      "timer": 40
+    },
+    {
+      "type": "textInput",
+      "question": "Textfrage?",
+      "answer": "Korrekte Antwort",
+      "fuzzy": true,
+      "timer": 30
+    }
+  ]
+}
+\`\`\`
+
+Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`
+    };
+
+    // Schwierigkeitsbeschreibungen
+    const difficultyDescriptions = {
+      easy: 'Grundwissen, einfache Konzepte',
+      medium: 'Vertieftes Verständnis, Anwendungen',
+      hard: 'Analysen, kritisches Denken, komplexe Szenarien'
+    };
+
+    // Template laden
+    function loadPromptTemplate(template) {
+      const topic = document.getElementById('promptTopic').value || 'Ihr Thema hier eingeben';
+      const count = document.getElementById('questionCount').value;
+      const types = getSelectedQuestionTypes();
+      const difficulty = currentDifficulty;
+      const diffDesc = difficultyDescriptions[difficulty];
+
+      let prompt = promptTemplates[template];
+      prompt = prompt.replace('{TOPIC}', topic);
+      prompt = prompt.replace(/{COUNT}/g, count);
+      prompt = prompt.replace('{TYPES}', types);
+      prompt = prompt.replace(/{DIFFICULTY}/g, difficulty);
+      prompt = prompt.replace('{DIFFICULTY_DESC}', diffDesc);
+
+      document.getElementById('aiPrompt').value = prompt;
+      showToast(`✓ ${template.toUpperCase()} Template geladen!`, 'success');
+    }
+
+    // Schwierigkeitsstufe setzen
+    function setDifficulty(level) {
+      currentDifficulty = level;
+      document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-pink-400');
+      });
+      document.querySelector(`.difficulty-btn[data-level="${level}"]`).classList.add('ring-2', 'ring-pink-400');
+      updatePrompt();
+    }
+
+    // Anzahl Fragen anzeigen
+    function updateQuestionCountDisplay() {
+      const count = document.getElementById('questionCount').value;
+      document.getElementById('questionCountDisplay').textContent = count;
+      updatePrompt();
+    }
+
+    // Fragetypen auslesen
+    function getSelectedQuestionTypes() {
+      const types = [];
+      const typeMap = {
+        multipleChoice: 'Multiple Choice',
+        trueFalse: 'Wahr/Falsch',
+        matching: 'Zuordnen',
+        textInput: 'Texteingabe'
+      };
+
+      document.querySelectorAll('.question-type-checkbox:checked').forEach(checkbox => {
+        types.push(typeMap[checkbox.value]);
+      });
+
+      return types.length > 0 ? types.join(', ') : 'Multiple Choice';
+    }
+
+    // Prompt aktualisieren
+    function updatePrompt() {
+      const topic = document.getElementById('promptTopic').value || 'Ihr Thema hier eingeben';
+      const count = document.getElementById('questionCount').value;
+      const types = getSelectedQuestionTypes();
+      const difficulty = currentDifficulty;
+      const diffDesc = difficultyDescriptions[difficulty];
+
+      let currentPrompt = document.getElementById('aiPrompt').value;
+      
+      // Erkennen welches Template aktiv ist
+      let template = 'custom';
+      if (currentPrompt.includes('Geschichtslehrer')) template = 'history';
+      if (currentPrompt.includes('Naturwissenschaftslehrer')) template = 'science';
+      if (currentPrompt.includes('Sprachlehrer')) template = 'languages';
+      if (currentPrompt.includes('Mathematiklehrer')) template = 'math';
+
+      let prompt = promptTemplates[template];
+      prompt = prompt.replace('{TOPIC}', topic);
+      prompt = prompt.replace(/{COUNT}/g, count);
+      prompt = prompt.replace('{TYPES}', types);
+      prompt = prompt.replace(/{DIFFICULTY}/g, difficulty);
+      prompt = prompt.replace('{DIFFICULTY_DESC}', diffDesc);
+
+      document.getElementById('aiPrompt').value = prompt;
+    }
+
+    // Prompt in Zwischenablage kopieren
+    function copyPromptToClipboard() {
+      const prompt = document.getElementById('aiPrompt').value;
+      if (!prompt) {
+        showToast('Bitte lade zuerst ein Template', 'error');
+        return;
+      }
+
+      navigator.clipboard.writeText(prompt).then(() => {
+        showToast('📋 Prompt kopiert! Füge ihn jetzt in ChatGPT/Claude ein', 'success');
+      }).catch(() => {
+        showToast('Fehler beim Kopieren', 'error');
+      });
+    }
+
+    // Prompt speichern
+    function downloadPrompt() {
+      const prompt = document.getElementById('aiPrompt').value;
+      if (!prompt) {
+        showToast('Bitte lade zuerst ein Template', 'error');
+        return;
+      }
+
+      const blob = new Blob([prompt], { type: 'text/plain; charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'quiz-prompt.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('💾 Prompt gespeichert!', 'success');
+    }
+
+    // YouTube API Ready
+    function onYouTubeIframeAPIReady() {
+      console.log('YouTube API ready');
+    }
+
+    function extractYouTubeId(url) {
+      if (!url) return null;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function levenshteinDistance(str1, str2) {
+      const m = str1.length;
+      const n = str2.length;
+      const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          if (str1[i - 1].toLowerCase() === str2[j - 1].toLowerCase()) {
+            dp[i][j] = dp[i - 1][j - 1];
+          } else {
+            dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+          }
+        }
+      }
+      return dp[m][n];
+    }
+
+    function isFuzzyMatch(input, correct, tolerance = 0.2) {
+      const normalizedInput = input.trim().toLowerCase();
+      const normalizedCorrect = correct.trim().toLowerCase();
+      if (normalizedInput === normalizedCorrect) return true;
+      const distance = levenshteinDistance(normalizedInput, normalizedCorrect);
+      const maxLen = Math.max(normalizedInput.length, normalizedCorrect.length);
+      const similarity = 1 - (distance / maxLen);
+      return similarity >= (1 - tolerance);
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('#app > div').forEach(div => div.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function getTypeLabel(type) {
+      const labels = {
+        trueFalse: '✓✗ Wahr/Falsch',
+        multipleChoice: '🔘 Multiple Choice',
+        matching: '🔗 Zuordnen',
+        textInput: '⌨️ Texteingabe'
+      };
+      return labels[type];
+    }
+
+    function getTypeSpecificFields(type) {
+      switch(type) {
+        case 'trueFalse':
+          return `
+            <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 mb-3 text-white placeholder-slate-400" placeholder="Aussage eingeben..." data-field="question">
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="tf_${Date.now()}" value="true" data-field="answer" class="accent-cyan-500 w-4 h-4">
+                <span>Wahr</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="tf_${Date.now()}" value="false" data-field="answer" class="accent-cyan-500 w-4 h-4">
+                <span>Falsch</span>
+              </label>
+            </div>
+          `;
+        case 'multipleChoice':
+          return `
+            <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 mb-3 text-white placeholder-slate-400" placeholder="Frage eingeben..." data-field="question">
+            <div class="space-y-2" data-field="options">
+              ${[1,2,3,4].map(i => `
+                <div class="flex items-center gap-2">
+                  <input type="radio" name="mc_${Date.now()}" value="${i-1}" data-field="correctOption" class="accent-cyan-500 w-4 h-4">
+                  <input type="text" class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 text-sm" placeholder="Option ${i}" data-option="${i-1}">
+                </div>
+              `).join('')}
+            </div>
+          `;
+        case 'matching':
+          return `
+            <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 mb-3 text-white placeholder-slate-400" placeholder="Aufgabenstellung" data-field="question">
+            <div class="grid grid-cols-2 gap-4" data-field="pairs">
+              <div class="space-y-2">
+                <span class="text-sm text-slate-400 font-semibold">Linke Seite</span>
+                ${[1,2,3,4].map(i => `<input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 text-sm" placeholder="Begriff ${i}" data-left="${i-1}">`).join('')}
+              </div>
+              <div class="space-y-2">
+                <span class="text-sm text-slate-400 font-semibold">Rechte Seite</span>
+                ${[1,2,3,4].map(i => `<input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 text-sm" placeholder="Zuordnung ${i}" data-right="${i-1}">`).join('')}
+              </div>
+            </div>
+          `;
+        case 'textInput':
+          return `
+            <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 mb-3 text-white placeholder-slate-400" placeholder="Frage eingeben..." data-field="question">
+            <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 mb-3 text-white placeholder-slate-400" placeholder="Richtige Antwort" data-field="answer">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-field="fuzzy" class="accent-cyan-500 w-5 h-5">
+              <span class="text-slate-300">💡 Kulanz-Modus (Tippfehler tolerieren)</span>
+            </label>
+          `;
+      }
+    }
+
+    function getQuestionTemplate(type, index) {
+      return `
+        <div class="question-card bg-slate-800/70 rounded-xl p-6 border border-slate-600" data-index="${index}" data-type="${type}">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <span class="bg-slate-700 px-3 py-1 rounded-lg text-sm font-semibold">${getTypeLabel(type)}</span>
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">⏱️</span>
+                <input type="number" class="w-16 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-white text-center text-sm" value="30" min="0" data-field="timer">
+                <span class="text-sm text-slate-400">s</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">📺</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" data-field="hasVideo" onchange="updateQuestionVideoFields(${index})">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <button onclick="removeQuestion(${index})" class="text-red-400 hover:text-red-300 font-bold">✕</button>
+            </div>
+          </div>
+          
+          <div class="video-input-area hidden mb-4 p-3 bg-red-600/10 border border-red-500/30 rounded-lg">
+            <label class="block text-xs font-medium text-red-300 mb-2">🎬 YouTube URL</label>
+            <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-400 mb-3" placeholder="https://youtube.com/watch?v=..." data-field="videoUrl">
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-red-300 block mb-1">Start (Sekunden):</label>
+                <input type="number" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-white text-center text-sm" value="0" min="0" data-field="videoStartTime">
+              </div>
+              <div>
+                <label class="text-xs text-red-300 block mb-1">Ende (Sekunden):</label>
+                <input type="number" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-white text-center text-sm" value="10" min="0" data-field="videoEndTime">
+              </div>
+            </div>
+          </div>
+          
+          ${getTypeSpecificFields(type)}
+        </div>
+      `;
+    }
+
+    function updateQuestionVideoFields(index) {
+      const card = document.querySelector(`[data-index="${index}"]`);
+      const checkbox = card.querySelector('[data-field="hasVideo"]');
+      const videoArea = card.querySelector('.video-input-area');
+      if (checkbox.checked) {
+        videoArea.classList.remove('hidden');
+      } else {
+        videoArea.classList.add('hidden');
+      }
+      updateQuizStats();
+    }
+
+    function updateQuizStats() {
+      const cards = document.querySelectorAll('.question-card');
+      let totalQuestions = 0;
+      let videoQuestions = 0;
+      cards.forEach(card => {
+        totalQuestions++;
+        if (card.querySelector('[data-field="hasVideo"]')?.checked) {
+          videoQuestions++;
+        }
+      });
+      document.getElementById('questionCount').textContent = totalQuestions;
+      document.getElementById('videoQuestionCount').textContent = videoQuestions;
+    }
+
+    function addQuestion(type) {
+      const container = document.getElementById('questionsContainer');
+      const div = document.createElement('div');
+      div.innerHTML = getQuestionTemplate(type, questionCounter++);
+      container.appendChild(div.firstElementChild);
+      updateQuizStats();
+    }
+
+    function removeQuestion(index) {
+      const card = document.querySelector(`[data-index="${index}"]`);
+      if (card) card.remove();
+      updateQuizStats();
+    }
+
+    function collectQuizData() {
+      const title = document.getElementById('quizTitle').value.trim();
+      if (!title) {
+        showToast('Bitte gib einen Titel ein', 'error');
+        return null;
+      }
+
+      const cards = document.querySelectorAll('.question-card');
+      if (cards.length === 0) {
+        showToast('Bitte füge mindestens eine Frage hinzu', 'error');
+        return null;
+      }
+
+      const gradeScale = {
+        1: parseInt(document.getElementById('grade1').value) || 90,
+        2: parseInt(document.getElementById('grade2').value) || 75,
+        3: parseInt(document.getElementById('grade3').value) || 60,
+        4: parseInt(document.getElementById('grade4').value) || 45,
+        5: parseInt(document.getElementById('grade5').value) || 25
+      };
+
+      const questions = [];
+      
+      cards.forEach(card => {
+        const type = card.dataset.type;
+        const timer = parseInt(card.querySelector('[data-field="timer"]').value) || 30;
+        const hasVideo = card.querySelector('[data-field="hasVideo"]')?.checked || false;
+        const videoUrl = card.querySelector('[data-field="videoUrl"]')?.value.trim() || '';
+        const videoStartTime = parseInt(card.querySelector('[data-field="videoStartTime"]')?.value) || 0;
+        const videoEndTime = parseInt(card.querySelector('[data-field="videoEndTime"]')?.value) || 10;
+        const question = card.querySelector('[data-field="question"]')?.value.trim();
+        
+        if (!question) return;
+
+        const q = { 
+          type, 
+          timer, 
+          question,
+          hasVideo: !!hasVideo
+        };
+
+        if (hasVideo && videoUrl) {
+          q.videoUrl = videoUrl;
+          q.videoStartTime = videoStartTime;
+          q.videoEndTime = videoEndTime;
+        }
+
+        switch(type) {
+          case 'trueFalse':
+            const checked = card.querySelector('[data-field="answer"]:checked');
+            q.answer = checked ? checked.value === 'true' : true;
+            break;
+          case 'multipleChoice':
+            q.options = [];
+            card.querySelectorAll('[data-option]').forEach(opt => {
+              if (opt.value.trim()) q.options.push(opt.value.trim());
+            });
+            const correctOpt = card.querySelector('[data-field="correctOption"]:checked');
+            q.correctIndex = correctOpt ? parseInt(correctOpt.value) : 0;
+            break;
+          case 'matching':
+            q.pairs = [];
+            for (let i = 0; i < 4; i++) {
+              const left = card.querySelector(`[data-left="${i}"]`)?.value.trim();
+              const right = card.querySelector(`[data-right="${i}"]`)?.value.trim();
+              if (left && right) q.pairs.push({ left, right });
+            }
+            break;
+          case 'textInput':
+            q.answer = card.querySelector('[data-field="answer"]')?.value.trim() || '';
+            q.fuzzy = card.querySelector('[data-field="fuzzy"]')?.checked || false;
+            break;
+        }
+        questions.push(q);
+      });
+
+      if (questions.length === 0) {
+        showToast('Keine gültigen Fragen gefunden', 'error');
+        return null;
+      }
+
+      return { title, questions, gradeScale };
+    }
+
+    function exportQuiz() {
+      const quizData = collectQuizData();
+      if (!quizData) return;
+
+      const blob = new Blob([JSON.stringify(quizData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${quizData.title.replace(/[^a-z0-9]/gi, '_')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('JSON exportiert! 📤', 'success');
+    }
+
+    function importQuiz(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.title && data.questions) {
+            currentQuiz = data;
+            startQuiz();
+          } else {
+            showToast('Ungültiges Quiz-Format', 'error');
+          }
+        } catch (err) {
+          showToast('Fehler beim Lesen der Datei', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function previewQuiz() {
+      const quizData = collectQuizData();
+      if (!quizData) return;
+      currentQuiz = quizData;
+      startQuiz();
+    }
+
+    function startQuiz() {
+      if (!currentQuiz || !currentQuiz.questions.length) {
+        showToast('Kein Quiz geladen', 'error');
+        return;
+      }
+
+      questions = [...currentQuiz.questions];
+      currentQuestionIndex = 0;
+      answers = [];
+      questionTimes = [];
+      
+      document.getElementById('totalQuestions').textContent = questions.length;
+      showScreen('quizScreen');
+      renderTimeline();
+      showQuestion();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timelineContainer');
+      container.innerHTML = questions.map((q, i) => `
+        <div class="timeline-dot inactive" data-question="${i}" title="Frage ${i + 1}"></div>
+      `).join('');
+      updateTimelineDot();
+    }
+
+    function updateTimelineDot() {
+      document.querySelectorAll('.timeline-dot').forEach((dot, i) => {
+        dot.classList.remove('inactive', 'current', 'completed', 'skipped');
+        
+        if (i < currentQuestionIndex) {
+          const answer = answers[i];
+          if (answer && answer.skipped) {
+            dot.classList.add('skipped');
+          } else if (answer && answer.isCorrect) {
+            dot.classList.add('completed');
+          } else {
+            dot.classList.add('completed');
+          }
+        } else if (i === currentQuestionIndex) {
+          dot.classList.add('current');
+        } else {
+          dot.classList.add('inactive');
+        }
+      });
+    }
+
+    function showQuestion() {
+      if (currentQuestionIndex >= questions.length) {
+        showResults();
+        return;
+      }
+
+      const q = questions[currentQuestionIndex];
+      document.getElementById('currentQuestionNum').textContent = currentQuestionIndex + 1;
+      
+      const area = document.getElementById('questionArea');
+      area.innerHTML = renderQuestionUI(q);
+      area.classList.add('fade-in');
+
+      const videoContainer = document.getElementById('videoContainer');
+      const questionGridCol = document.getElementById('questionGridCol');
+      
+      if (q.hasVideo && q.videoUrl && q.videoStartTime !== undefined && q.videoEndTime !== undefined) {
+        const videoId = extractYouTubeId(q.videoUrl);
+        if (videoId) {
+          videoContainer.classList.remove('hidden');
+          questionGridCol.className = 'lg:col-span-3';
+          playYouTubeVideo(videoId, q.videoStartTime, q.videoEndTime);
+        }
+      } else {
+        videoContainer.classList.add('hidden');
+        questionGridCol.className = 'lg:col-span-4';
+        if (youtubePlayer) {
+          youtubePlayer.destroy();
+          youtubePlayer = null;
+        }
+        if (videoCheckInterval) {
+          clearInterval(videoCheckInterval);
+        }
+      }
+
+      questionStartTime = Date.now();
+      updateTimelineDot();
+      
+      if (q.timer > 0) {
+        document.getElementById('quizTimer').classList.remove('hidden');
+        document.getElementById('timerBarContainer').classList.remove('hidden');
+        startTimer(q.timer);
+      } else {
+        document.getElementById('quizTimer').classList.add('hidden');
+        document.getElementById('timerBarContainer').classList.add('hidden');
+        clearInterval(timerInterval);
+        document.getElementById('timerBar').style.width = '100%';
+      }
+    }
+
+    function playYouTubeVideo(videoId, startTime, endTime) {
+      if (youtubePlayer) {
+        youtubePlayer.destroy();
+      }
+
+      youtubePlayer = new YT.Player('quizVideoPlayer', {
+        width: '100%',
+        height: '100%',
+        videoId: videoId,
+        playerVars: {
+          controls: 1,
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onReady: (event) => {
+            event.target.seekTo(startTime);
+            event.target.playVideo();
+          },
+          onStateChange: (event) => onVideoStateChange(event, endTime)
+        }
+      });
+    }
+
+    function onVideoStateChange(event, endTime) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        if (videoCheckInterval) clearInterval(videoCheckInterval);
+        videoCheckInterval = setInterval(() => {
+          if (youtubePlayer && youtubePlayer.getCurrentTime() >= endTime) {
+            youtubePlayer.pauseVideo();
+            clearInterval(videoCheckInterval);
+          }
+        }, 200);
+      }
+    }
+
+    function renderQuestionUI(q) {
+      let html = `<h3 class="text-2xl font-bold mb-6 text-cyan-300">${escapeHtml(q.question)}</h3>`;
+      
+      switch(q.type) {
+        case 'trueFalse':
+          html += `
+            <div class="flex gap-4 justify-center flex-wrap">
+              <button onclick="selectTrueFalse(true)" class="tf-btn bg-emerald-600/30 hover:bg-emerald-600/50 border-2 border-emerald-500/50 px-8 py-4 rounded-xl text-lg transition-all" data-value="true">
+                ✓ Wahr
+              </button>
+              <button onclick="selectTrueFalse(false)" class="tf-btn bg-red-600/30 hover:bg-red-600/50 border-2 border-red-500/50 px-8 py-4 rounded-xl text-lg transition-all" data-value="false">
+                ✗ Falsch
+              </button>
+            </div>
+          `;
+          break;
+        case 'multipleChoice':
+          html += `<div class="space-y-3">`;
+          q.options.forEach((opt, i) => {
+            html += `
+              <button onclick="selectOption(${i})" class="mc-btn w-full bg-slate-700/50 hover:bg-cyan-600/30 border-2 border-slate-600 hover:border-cyan-500 p-4 rounded-xl text-left transition-all" data-index="${i}">
+                <span class="inline-block w-8 h-8 bg-slate-600 rounded-full text-center leading-8 mr-3 font-semibold">${String.fromCharCode(65 + i)}</span>
+                ${escapeHtml(opt)}
+              </button>
+            `;
+          });
+          html += `</div>`;
+          break;
+        case 'matching':
+          const shuffledRight = [...q.pairs].sort(() => Math.random() - 0.5);
+          html += `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-3">
+                ${q.pairs.map((p, i) => `
+                  <div class="match-left bg-cyan-600/30 border-2 border-cyan-500/50 p-3 rounded-xl font-semibold" data-index="${i}">
+                    ${escapeHtml(p.left)}
+                  </div>
+                `).join('')}
+              </div>
+              <div class="space-y-3" id="matchTargets">
+                ${shuffledRight.map((p, i) => `
+                  <div class="match-item bg-blue-600/30 border-2 border-blue-500/50 p-3 rounded-xl cursor-pointer hover:bg-blue-600/50 transition-all font-semibold" 
+                       data-right="${escapeHtml(p.right)}"
+                       onclick="selectMatchItem(this)">
+                    ${escapeHtml(p.right)}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div id="matchSelections" class="mt-4 hidden">
+              <p class="text-sm text-slate-300 mb-2 font-semibold">✓ Deine Zuordnungen:</p>
+              <div class="space-y-2" id="matchResults"></div>
+            </div>
+          `;
+          break;
+        case 'textInput':
+          html += `
+            <input type="text" id="textAnswer" 
+                   class="w-full bg-slate-700 border-2 border-slate-600 focus:border-cyan-500 rounded-xl px-4 py-3 text-white text-lg placeholder-slate-400 focus:outline-none transition-all" 
+                   placeholder="Deine Antwort eingeben..."
+                   autocomplete="off">
+            ${q.fuzzy ? '<p class="text-sm text-emerald-400 mt-3">💡 Kulanz-Modus aktiv</p>' : ''}
+          `;
+          break;
+      }
+      
+      return html;
+    }
+
+    function selectTrueFalse(value) {
+      document.querySelectorAll('.tf-btn').forEach(btn => {
+        btn.classList.remove('ring-4', 'ring-cyan-400');
+      });
+      document.querySelector(`.tf-btn[data-value="${value}"]`).classList.add('ring-4', 'ring-cyan-400');
+      currentSelection = value;
+    }
+
+    function selectOption(index) {
+      document.querySelectorAll('.mc-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-600/50', 'border-cyan-400');
+        btn.classList.add('bg-slate-700/50', 'border-slate-600');
+      });
+      const btn = document.querySelector(`.mc-btn[data-index="${index}"]`);
+      btn.classList.remove('bg-slate-700/50', 'border-slate-600');
+      btn.classList.add('bg-cyan-600/50', 'border-cyan-400');
+      currentSelection = index;
+    }
+
+    function selectMatchItem(el) {
+      const q = questions[currentQuestionIndex];
+      if (matchingSelections.length >= q.pairs.length) return;
+      
+      el.classList.add('opacity-50', 'pointer-events-none');
+      
+      const leftIndex = matchingSelections.length;
+      const rightValue = el.dataset.right;
+      matchingSelections.push({ leftIndex, rightValue });
+      
+      document.getElementById('matchSelections').classList.remove('hidden');
+      const resultsDiv = document.getElementById('matchResults');
+      resultsDiv.innerHTML = matchingSelections.map((sel, i) => `
+        <div class="flex items-center gap-2 bg-slate-700/50 p-2 rounded-lg">
+          <span class="text-cyan-400 font-semibold">${escapeHtml(q.pairs[sel.leftIndex].left)}</span>
+          <span class="text-slate-500">→</span>
+          <span class="text-blue-400 font-semibold">${escapeHtml(sel.rightValue)}</span>
+        </div>
+      `).join('');
+    }
+
+    function startTimer(seconds) {
+      clearInterval(timerInterval);
+      let remaining = seconds;
+      
+      document.getElementById('timerDisplay').textContent = formatTime(remaining);
+      document.getElementById('timerBar').style.width = '100%';
+      
+      timerInterval = setInterval(() => {
+        remaining--;
+        document.getElementById('timerDisplay').textContent = formatTime(remaining);
+        document.getElementById('timerBar').style.width = `${(remaining / seconds) * 100}%`;
+        
+        if (remaining <= 5) {
+          document.getElementById('timerDisplay').classList.add('text-red-400', 'pulse');
+        }
+        
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          submitAnswer(true);
+        }
+      }, 1000);
+    }
+
+    function submitAnswer(timedOut = false) {
+      clearInterval(timerInterval);
+      document.getElementById('timerDisplay').classList.remove('text-red-400', 'pulse');
+      
+      const q = questions[currentQuestionIndex];
+      const timeTaken = (Date.now() - questionStartTime) / 1000;
+      questionTimes.push({ time: timeTaken, withinLimit: q.timer > 0 ? timeTaken <= q.timer : true });
+      
+      let userAnswer = null;
+      let isCorrect = false;
+
+      switch(q.type) {
+        case 'trueFalse':
+          userAnswer = currentSelection;
+          isCorrect = currentSelection === q.answer;
+          break;
+        case 'multipleChoice':
+          userAnswer = currentSelection;
+          isCorrect = currentSelection === q.correctIndex;
+          break;
+        case 'matching':
+          userAnswer = matchingSelections;
+          isCorrect = matchingSelections.every((sel, i) => 
+            q.pairs[sel.leftIndex].right === sel.rightValue
+          ) && matchingSelections.length === q.pairs.length;
+          break;
+        case 'textInput':
+          const textInput = document.getElementById('textAnswer');
+          userAnswer = textInput ? textInput.value : '';
+          if (q.fuzzy) {
+            isCorrect = isFuzzyMatch(userAnswer, q.answer);
+          } else {
+            isCorrect = userAnswer.trim().toLowerCase() === q.answer.trim().toLowerCase();
+          }
+          break;
+      }
+
+      answers.push({
+        question: q.question,
+        type: q.type,
+        userAnswer,
+        correctAnswer: getCorrectAnswer(q),
+        isCorrect,
+        timedOut,
+        timeTaken
+      });
+
+      currentSelection = null;
+      matchingSelections = [];
+      
+      currentQuestionIndex++;
+      showQuestion();
+    }
+
+    function skipQuestion() {
+      const q = questions[currentQuestionIndex];
+      const timeTaken = (Date.now() - questionStartTime) / 1000;
+      
+      questionTimes.push({ time: timeTaken, withinLimit: false });
+      answers.push({
+        question: q.question,
+        type: q.type,
+        userAnswer: null,
+        correctAnswer: getCorrectAnswer(q),
+        isCorrect: false,
+        skipped: true,
+        timeTaken
+      });
+
+      currentSelection = null;
+      matchingSelections = [];
+      
+      currentQuestionIndex++;
+      clearInterval(timerInterval);
+      showQuestion();
+    }
+
+    function getCorrectAnswer(q) {
+      switch(q.type) {
+        case 'trueFalse': return q.answer ? 'Wahr' : 'Falsch';
+        case 'multipleChoice': return q.options[q.correctIndex];
+        case 'matching': return q.pairs.map(p => `${p.left} → ${p.right}`).join(', ');
+        case 'textInput': return q.answer;
+      }
+    }
+
+    function showResults() {
+      showScreen('resultsScreen');
+      
+      const correctCount = answers.filter(a => a.isCorrect).length;
+      const totalCount = answers.length;
+      const percentage = Math.round((correctCount / totalCount) * 100);
+      const totalTime = questionTimes.reduce((sum, t) => sum + t.time, 0);
+      
+      document.getElementById('resultsTitle').textContent = currentQuiz.title;
+      document.getElementById('scorePercent').textContent = `${percentage}%`;
+      document.getElementById('timeTotal').textContent = formatTime(Math.round(totalTime));
+      
+      const grade = calculateGrade(percentage, currentQuiz.gradeScale);
+      const gradeEl = document.getElementById('gradeDisplay');
+      gradeEl.textContent = grade;
+      gradeEl.className = 'text-5xl font-bold grade-badge ' + getGradeColor(grade);
+      
+      const detailedDiv = document.getElementById('detailedResults');
+      detailedDiv.innerHTML = answers.map((a, i) => `
+        <div class="flex items-start gap-3 p-3 rounded-lg ${a.isCorrect ? 'bg-emerald-600/20 border border-emerald-500/30' : 'bg-red-600/20 border border-red-500/30'}">
+          <span class="text-2xl flex-shrink-0">${a.isCorrect ? '✓' : '✗'}</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-sm">${escapeHtml(a.question)}</p>
+            <p class="text-xs text-slate-400 mt-1">
+              ${a.skipped ? '⏭️ Übersprungen' : `Antwort: ${formatAnswer(a.userAnswer, a.type)}`}
+            </p>
+            ${!a.isCorrect ? `<p class="text-xs text-emerald-400 mt-1">✓ ${escapeHtml(a.correctAnswer)}</p>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function calculateGrade(percentage, scale) {
+      if (percentage >= scale[1]) return 1;
+      if (percentage >= scale[2]) return 2;
+      if (percentage >= scale[3]) return 3;
+      if (percentage >= scale[4]) return 4;
+      if (percentage >= scale[5]) return 5;
+      return 6;
+    }
+
+    function getGradeColor(grade) {
+      const colors = {
+        1: 'text-emerald-400',
+        2: 'text-green-400',
+        3: 'text-yellow-400',
+        4: 'text-orange-400',
+        5: 'text-red-400',
+        6: 'text-red-600'
+      };
+      return colors[grade] || 'text-slate-400';
+    }
+
+    function formatAnswer(answer, type) {
+      if (answer === null || answer === undefined) return 'Keine Antwort';
+      if (type === 'trueFalse') return answer ? 'Wahr' : 'Falsch';
+      if (type === 'multipleChoice') return String.fromCharCode(65 + answer);
+      if (type === 'matching') return answer.map(s => `${s.leftIndex + 1}→${s.rightValue}`).join(', ');
+      return String(answer);
+    }
+
+    function retryQuiz() {
+      startQuiz();
+    }
+
+    function exportResultsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const correctCount = answers.filter(a => a.isCorrect).length;
+      const percentage = Math.round((correctCount / answers.length) * 100);
+      const grade = calculateGrade(percentage, currentQuiz.gradeScale);
+      const totalTime = questionTimes.reduce((sum, t) => sum + t.time, 0);
+      
+      doc.setFontSize(20);
+      doc.setTextColor(34, 211, 238);
+      doc.text('KlasseFix 3.0 Pro', 20, 20);
+      
+      doc.setFontSize(14);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Quiz: ${currentQuiz.title}`, 20, 35);
+      doc.text(`Ergebnis: ${correctCount}/${answers.length} (${percentage}%)`, 20, 50);
+      doc.text(`Zeit: ${formatTime(Math.round(totalTime))}`, 20, 65);
+      
+      doc.setFontSize(24);
+      doc.setTextColor(grade <= 2 ? 16 : grade <= 4 ? 200 : 200, grade <= 2 ? 185 : grade <= 4 ? 158 : 68, grade <= 2 ? 129 : grade <= 4 ? 11 : 68);
+      doc.text(`Note: ${grade}`, 150, 50);
+      
+      let y = 85;
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      
+      answers.forEach((a, i) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(`${i + 1}. ${a.question.substring(0, 50)}`, 20, y);
+        y += 8;
+      });
+      
+      doc.save(`KlasseFix_Ergebnisse_${currentQuiz.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+      showToast('📊 Quiz-Ergebnisse PDF gespeichert!', 'success');
+    }
+
+    function exportQuizAsTestPDF() {
+      if (!currentQuiz) {
+        showToast('Kein Quiz geladen', 'error');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      // Titel
+      doc.setFontSize(20);
+      doc.setTextColor(6, 182, 212);
+      doc.text(currentQuiz.title, pageWidth / 2, 20, { align: 'center' });
+      
+      // Datum und Punkte
+      doc.setFontSize(12);
+      doc.setTextColor(100, 116, 139);
+      const today = new Date().toLocaleDateString('de-DE');
+      doc.text(`Datum: ${today}`, 20, 40);
+      doc.text(`Punkte: ${currentQuiz.questions.length * 5}`, pageWidth - 20, 40, { align: 'right' });
+      
+      // Trennlinie
+      doc.setDrawColor(6, 182, 212);
+      doc.setLineWidth(0.5);
+      doc.line(20, 45, pageWidth - 20, 45);
+      
+      // Fragen
+      let yPosition = 60;
+      let questionNumber = 1;
+      
+      currentQuiz.questions.forEach((q, index) => {
+        // Neue Seite bei Bedarf
+        if (yPosition > pageHeight - 50) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        // Fragetyp-Badge
+        doc.setFillColor(30, 41, 59);
+        doc.roundedRect(20, yPosition, 60, 10, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.text(getTypeLabel(q.type).substring(2), 25, yPosition + 6.5);
+        
+        // Frage
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${questionNumber}. ${q.question}`, 85, yPosition + 7);
+        doc.setFont(undefined, 'normal');
+        
+        yPosition += 20;
+        
+        // Antwortbereich je nach Fragetyp
+        switch(q.type) {
+          case 'multipleChoice':
+            const options = ['A', 'B', 'C', 'D'];
+            options.forEach((letter, i) => {
+              if (q.options && q.options[i]) {
+                doc.setFontSize(11);
+                doc.text(`  ${letter}) ${q.options[i]}`, 25, yPosition);
+                yPosition += 7;
+              }
+            });
+            yPosition += 5;
+            break;
+            
+          case 'trueFalse':
+            doc.setFontSize(11);
+            doc.text('  ☐ Wahr', 25, yPosition);
+            yPosition += 7;
+            doc.text('  ☐ Falsch', 25, yPosition);
+            yPosition += 12;
+            break;
+            
+          case 'matching':
+            if (q.pairs) {
+              doc.setFontSize(11);
+              q.pairs.forEach((pair, i) => {
+                doc.text(`  ${i + 1}. ${pair.left}`, 25, yPosition);
+                doc.text('_______________', pageWidth - 50, yPosition);
+                yPosition += 7;
+              });
+              yPosition += 5;
+            }
+            break;
+            
+          case 'textInput':
+            doc.setDrawColor(203, 213, 225);
+            for (let i = 0; i < 3; i++) {
+              doc.line(25, yPosition, pageWidth - 25, yPosition);
+              yPosition += 7;
+            }
+            yPosition += 5;
+            break;
+        }
+        
+        // Trennlinie zwischen Fragen
+        if (index < currentQuiz.questions.length - 1) {
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(0.3);
+          doc.line(20, yPosition, pageWidth - 20, yPosition);
+          yPosition += 15;
+        }
+        
+        questionNumber++;
+      });
+      
+      // Punkteschlüssel am Ende
+      doc.addPage();
+      doc.setFontSize(16);
+      doc.setTextColor(6, 182, 212);
+      doc.text('Bewertungsschlüssel', pageWidth / 2, 30, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      let y = 60;
+      
+      currentQuiz.questions.forEach((q, index) => {
+        doc.setFont(undefined, 'bold');
+        doc.text(`${index + 1}.`, 20, y);
+        doc.setFont(undefined, 'normal');
+        
+        let answerText = '';
+        switch(q.type) {
+          case 'multipleChoice':
+            answerText = q.options ? `Richtige Antwort: ${String.fromCharCode(65 + q.correctIndex)}` : '';
+            break;
+          case 'trueFalse':
+            answerText = `Richtige Antwort: ${q.answer ? 'Wahr' : 'Falsch'}`;
+            break;
+          case 'matching':
+            answerText = q.pairs ? q.pairs.map(p => `${p.left} → ${p.right}`).join('; ') : '';
+            break;
+          case 'textInput':
+            answerText = `Richtige Antwort: ${q.answer || ''}`;
+            break;
+        }
+        
+        doc.text(answerText, 35, y);
+        doc.text('(5 Punkte)', pageWidth - 35, y, { align: 'right' });
+        y += 10;
+      });
+      
+      // Gesamtpunktzahl
+      y += 10;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Gesamt: ${currentQuiz.questions.length * 5} Punkte`, pageWidth / 2, y, { align: 'center' });
+      
+      // Speichern
+      doc.save(`Test_${currentQuiz.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+      showToast('📝 Test-PDF erstellt!', 'success');
+    }
+
+    function generateLatexDocument(quizData) {
+      const totalPoints = quizData.questions.length * 5;
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('de-DE');
+      
+      let latex = `\\documentclass[11pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[ngerman]{babel}
+\\usepackage[a4paper,margin=2cm]{geometry}
+\\usepackage{setspace}
+\\usepackage{array}
+\\usepackage{booktabs}
+\\usepackage{xcolor}
+\\usepackage{multicol}
+
+\\pagestyle{empty}
+
+\\begin{document}
+
+\\thispagestyle{empty}
+
+% Header
+{\\Large \\textbf{${escapeLatex(quizData.title)}}}
+
+\\vspace{0.5cm}
+
+\\noindent
+\\begin{tabular}{|l|p{4cm}|}
+\\hline
+\\textbf{Name:} & \\dotfill \\\\
+\\hline
+\\textbf{Datum:} & ${dateStr} \\\\
+\\hline
+\\textbf{Arbeitszeit:} & 45 Minuten \\\\
+\\hline
+\\textbf{Gesamtpunktzahl:} & ${totalPoints} Punkte \\\\
+\\hline
+\\end{tabular}
+
+\\vspace{1cm}
+
+\\noindent
+\\textit{Bearbeitungshinweise: Lösen Sie die folgenden Aufgaben sorgfältig. Zeigen Sie Ihre Gedankengänge. Jede Aufgabe ergibt 5 Punkte.}
+
+\\vspace{1cm}
+
+% Questions
+`;
+
+      quizData.questions.forEach((q, index) => {
+        latex += `\\noindent\\textbf{Aufgabe ${index + 1}} \\hfill \\textit{(5 Punkte)}\\\\[0.2cm]\n`;
+        latex += `${escapeLatex(q.question)}`;
+
+        if (q.hasVideo && q.videoUrl) {
+          const startMin = Math.floor(q.videoStartTime / 60);
+          const startSec = q.videoStartTime % 60;
+          const endMin = Math.floor(q.videoEndTime / 60);
+          const endSec = q.videoEndTime % 60;
+          latex += `\\\\[0.1cm]\\textit{\\small [Beziehe dich auf das Video (${startMin}:${String(startSec).padStart(2, '0')}--${endMin}:${String(endSec).padStart(2, '0')})]}`;
+        }
+
+        latex += `\\\\[0.3cm]\n`;
+
+        switch(q.type) {
+          case 'multipleChoice':
+            latex += `\\begin{enumerate}\\setcounter{enumi}{0}\\itemsep=0.4cm\n`;
+            q.options.forEach((opt, i) => {
+              latex += `\\item ${escapeLatex(opt)}\\\\[0.3cm]\n`;
+            });
+            latex += `\\end{enumerate}\n`;
+            break;
+
+          case 'trueFalse':
+            latex += `\\begin{center}\\Large\\textbf{\\(\\square\\) Wahr \\quad \\(\\square\\) Falsch}\\end{center}\\\\[0.5cm]\n`;
+            break;
+
+          case 'matching':
+            latex += `\\begin{center}\\begin{tabular}{|l|l|}\\hline\n`;
+            latex += `\\textbf{Begriffe} & \\textbf{Zuordnung} \\\\\\hline\n`;
+            q.pairs.forEach((p) => {
+              latex += `${escapeLatex(p.left)} & \\dotfill \\\\\\hline\n`;
+            });
+            latex += `\\end{tabular}\\end{center}\\\\[0.3cm]\n`;
+            break;
+
+          case 'textInput':
+            latex += `\\vspace{2cm}\n`;
+            break;
+        }
+
+        latex += `\\vspace{0.8cm}\n\n`;
+      });
+
+      latex += `\\end{document}`;
+      
+      return latex;
+    }
+
+    function escapeLatex(text) {
+      return text
+        .replace(/\\/g, '\\textbackslash{}')
+        .replace(/[&%$#_{}]/g, '\\$&')
+        .replace(/~/g, '\\textasciitilde{}')
+        .replace(/\^/g, '\\textasciicircum{}')
+        .replace(/</g, '\\textless{}')
+        .replace(/>/g, '\\textgreater{}');
+    }
+
+    async function exportAsClasswork() {
+      const texCode = generateLatexDocument(currentQuiz);
+      
+      try {
+        const response = await fetch('/_api/compile-latex', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latex: texCode })
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          downloadFile(blob, `Klassenarbeit_${currentQuiz.title.replace(/[^a-z0-9]/gi, '_')}.pdf`, 'application/pdf');
+          showToast('📋 Klassenarbeit PDF erstellt!', 'success');
+        } else {
+          throw new Error('Server antwortet nicht');
+        }
+      } catch (err) {
+        // Fallback: .tex Datei anbieten
+        const blob = new Blob([texCode], { type: 'text/plain; charset=utf-8' });
+        downloadFile(blob, `Klassenarbeit_${currentQuiz.title.replace(/[^a-z0-9]/gi, '_')}.tex`, 'text/plain');
+        showToast('📄 LaTeX-Datei gespeichert (öffne mit Overleaf oder lokalem LaTeX)', 'info');
+      }
+    }
+
+    function downloadFile(blob, filename, mimeType) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg z-50 fade-in ${
+        type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-cyan-600'
+      } text-white font-semibold`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cabd06df10ed290',t:'MTc3MDU2MDkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
