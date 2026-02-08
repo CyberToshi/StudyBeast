@@ -261,9 +261,9 @@
     let videoCheckInterval = null;
     let currentDifficulty = 'medium';
 
-    // Prompt Templates für verschiedene Fächer
-    const promptTemplates = {
-      history: `Du bist ein erfahrener Geschichtslehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+// Prompt Templates für verschiedene Fächer - KORRIGIERTE VERSION
+const promptTemplates = {
+  history: `Du bist ein erfahrener Geschichtslehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
 
 THEMA: {TOPIC}
 
@@ -271,51 +271,80 @@ ANFORDERUNGEN:
 - Erstelle genau {COUNT} Fragen zum Thema
 - Verwende folgende Fragetypen: {TYPES}
 - Schwierigkeitsgrad: {DIFFICULTY} ({DIFFICULTY_DESC})
-- Fragen sollen methodisch aufgebaut sein (vom einfachen zum Komplexen)
+- Fragen sollen methodisch aufbauen (vom einfachen zum Komplexen)
 - Berücksichtige historische Fakten, Zusammenhänge und Analysen
 
 WICHTIG - Das JSON MUSS genau dieses Format haben (keine anderen Strukturen!):
 \`\`\`json
 {
   "title": "{TOPIC}",
-  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
   "questions": [
     {
-      "type": "multipleChoice",
-      "question": "Frage?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 1,
-      "timer": 30
+      "type": "trueFalse",
+      "timer": 30,
+      "question": "Diese Aussage ist wahr",
+      "hasVideo": false,
+      "answer": true
     },
     {
-      "type": "trueFalse",
-      "question": "Aussage?",
-      "answer": true,
-      "timer": 20
+      "type": "multipleChoice",
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4"
+      ],
+      "correctIndex": 0
     },
     {
       "type": "matching",
-      "question": "Zuordnungsaufgabe?",
+      "timer": 30,
+      "question": "Aufgabenstellung",
+      "hasVideo": false,
       "pairs": [
-        { "left": "Begriff 1", "right": "Definition 1" },
-        { "left": "Begriff 2", "right": "Definition 2" }
-      ],
-      "timer": 40
+        {
+          "left": "Begriff 1",
+          "right": "Zuordnung 1"
+        },
+        {
+          "left": "Begriff 2",
+          "right": "Zuordnung 2"
+        },
+        {
+          "left": "Begriff 3",
+          "right": "Zuordnung 3"
+        },
+        {
+          "left": "Begriff 4",
+          "right": "Zuordnung 4"
+        }
+      ]
     },
     {
       "type": "textInput",
-      "question": "Textfrage?",
-      "answer": "Korrekte Antwort",
-      "fuzzy": true,
-      "timer": 30
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "answer": "Richtige Antwort",
+      "fuzzy": true
     }
-  ]
+  ],
+  "gradeScale": {
+    "1": 90,
+    "2": 75,
+    "3": 60,
+    "4": 45,
+    "5": 25
+  }
 }
 \`\`\`
 
 Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
 
-      science: `Du bist ein erfahrener Naturwissenschaftslehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+  science: `Du bist ein erfahrener Naturwissenschaftslehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
 
 THEMA: {TOPIC}
 
@@ -330,44 +359,73 @@ WICHTIG - Das JSON MUSS genau dieses Format haben:
 \`\`\`json
 {
   "title": "{TOPIC}",
-  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
   "questions": [
     {
-      "type": "multipleChoice",
-      "question": "Frage?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 1,
-      "timer": 30
+      "type": "trueFalse",
+      "timer": 30,
+      "question": "Diese Aussage ist wahr",
+      "hasVideo": false,
+      "answer": true
     },
     {
-      "type": "trueFalse",
-      "question": "Aussage?",
-      "answer": true,
-      "timer": 20
+      "type": "multipleChoice",
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4"
+      ],
+      "correctIndex": 0
     },
     {
       "type": "matching",
-      "question": "Zuordnungsaufgabe?",
+      "timer": 30,
+      "question": "Aufgabenstellung",
+      "hasVideo": false,
       "pairs": [
-        { "left": "Begriff 1", "right": "Definition 1" },
-        { "left": "Begriff 2", "right": "Definition 2" }
-      ],
-      "timer": 40
+        {
+          "left": "Begriff 1",
+          "right": "Zuordnung 1"
+        },
+        {
+          "left": "Begriff 2",
+          "right": "Zuordnung 2"
+        },
+        {
+          "left": "Begriff 3",
+          "right": "Zuordnung 3"
+        },
+        {
+          "left": "Begriff 4",
+          "right": "Zuordnung 4"
+        }
+      ]
     },
     {
       "type": "textInput",
-      "question": "Textfrage?",
-      "answer": "Korrekte Antwort",
-      "fuzzy": true,
-      "timer": 30
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "answer": "Richtige Antwort",
+      "fuzzy": true
     }
-  ]
+  ],
+  "gradeScale": {
+    "1": 90,
+    "2": 75,
+    "3": 60,
+    "4": 45,
+    "5": 25
+  }
 }
 \`\`\`
 
 Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
 
-      languages: `Du bist ein erfahrener Sprachlehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+  languages: `Du bist ein erfahrener Sprachlehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
 
 THEMA: {TOPIC}
 
@@ -382,44 +440,73 @@ WICHTIG - Das JSON MUSS genau dieses Format haben:
 \`\`\`json
 {
   "title": "{TOPIC}",
-  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
   "questions": [
     {
-      "type": "multipleChoice",
-      "question": "Frage?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 1,
-      "timer": 30
+      "type": "trueFalse",
+      "timer": 30,
+      "question": "Diese Aussage ist wahr",
+      "hasVideo": false,
+      "answer": true
     },
     {
-      "type": "trueFalse",
-      "question": "Aussage?",
-      "answer": true,
-      "timer": 20
+      "type": "multipleChoice",
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4"
+      ],
+      "correctIndex": 0
     },
     {
       "type": "matching",
-      "question": "Zuordnungsaufgabe?",
+      "timer": 30,
+      "question": "Aufgabenstellung",
+      "hasVideo": false,
       "pairs": [
-        { "left": "Begriff 1", "right": "Definition 1" },
-        { "left": "Begriff 2", "right": "Definition 2" }
-      ],
-      "timer": 40
+        {
+          "left": "Begriff 1",
+          "right": "Zuordnung 1"
+        },
+        {
+          "left": "Begriff 2",
+          "right": "Zuordnung 2"
+        },
+        {
+          "left": "Begriff 3",
+          "right": "Zuordnung 3"
+        },
+        {
+          "left": "Begriff 4",
+          "right": "Zuordnung 4"
+        }
+      ]
     },
     {
       "type": "textInput",
-      "question": "Textfrage?",
-      "answer": "Korrekte Antwort",
-      "fuzzy": true,
-      "timer": 30
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "answer": "Richtige Antwort",
+      "fuzzy": true
     }
-  ]
+  ],
+  "gradeScale": {
+    "1": 90,
+    "2": 75,
+    "3": 60,
+    "4": 45,
+    "5": 25
+  }
 }
 \`\`\`
 
 Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
 
-      math: `Du bist ein erfahrener Mathematiklehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+  math: `Du bist ein erfahrener Mathematiklehrer. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
 
 THEMA: {TOPIC}
 
@@ -434,44 +521,73 @@ WICHTIG - Das JSON MUSS genau dieses Format haben:
 \`\`\`json
 {
   "title": "{TOPIC}",
-  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
   "questions": [
     {
-      "type": "multipleChoice",
-      "question": "Frage?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 1,
-      "timer": 30
+      "type": "trueFalse",
+      "timer": 30,
+      "question": "Diese Aussage ist wahr",
+      "hasVideo": false,
+      "answer": true
     },
     {
-      "type": "trueFalse",
-      "question": "Aussage?",
-      "answer": true,
-      "timer": 20
+      "type": "multipleChoice",
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4"
+      ],
+      "correctIndex": 0
     },
     {
       "type": "matching",
-      "question": "Zuordnungsaufgabe?",
+      "timer": 30,
+      "question": "Aufgabenstellung",
+      "hasVideo": false,
       "pairs": [
-        { "left": "Begriff 1", "right": "Definition 1" },
-        { "left": "Begriff 2", "right": "Definition 2" }
-      ],
-      "timer": 40
+        {
+          "left": "Begriff 1",
+          "right": "Zuordnung 1"
+        },
+        {
+          "left": "Begriff 2",
+          "right": "Zuordnung 2"
+        },
+        {
+          "left": "Begriff 3",
+          "right": "Zuordnung 3"
+        },
+        {
+          "left": "Begriff 4",
+          "right": "Zuordnung 4"
+        }
+      ]
     },
     {
       "type": "textInput",
-      "question": "Textfrage?",
-      "answer": "Korrekte Antwort",
-      "fuzzy": true,
-      "timer": 30
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "answer": "Richtige Antwort",
+      "fuzzy": true
     }
-  ]
+  ],
+  "gradeScale": {
+    "1": 90,
+    "2": 75,
+    "3": 60,
+    "4": 45,
+    "5": 25
+  }
 }
 \`\`\`
 
 Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`,
 
-      custom: `Du bist ein Experte für Lerninhalte. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
+  custom: `Du bist ein Experte für Lerninhalte. Erstelle ein vollständiges Quiz-JSON für folgendes Thema:
 
 THEMA: {TOPIC}
 
@@ -486,44 +602,72 @@ WICHTIG - Das JSON MUSS genau dieses Format haben:
 \`\`\`json
 {
   "title": "{TOPIC}",
-  "gradeScale": { "1": 90, "2": 75, "3": 60, "4": 45, "5": 25 },
   "questions": [
     {
-      "type": "multipleChoice",
-      "question": "Frage?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 1,
-      "timer": 30
+      "type": "trueFalse",
+      "timer": 30,
+      "question": "Diese Aussage ist wahr",
+      "hasVideo": false,
+      "answer": true
     },
     {
-      "type": "trueFalse",
-      "question": "Aussage?",
-      "answer": true,
-      "timer": 20
+      "type": "multipleChoice",
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4"
+      ],
+      "correctIndex": 0
     },
     {
       "type": "matching",
-      "question": "Zuordnungsaufgabe?",
+      "timer": 30,
+      "question": "Aufgabenstellung",
+      "hasVideo": false,
       "pairs": [
-        { "left": "Begriff 1", "right": "Definition 1" },
-        { "left": "Begriff 2", "right": "Definition 2" }
-      ],
-      "timer": 40
+        {
+          "left": "Begriff 1",
+          "right": "Zuordnung 1"
+        },
+        {
+          "left": "Begriff 2",
+          "right": "Zuordnung 2"
+        },
+        {
+          "left": "Begriff 3",
+          "right": "Zuordnung 3"
+        },
+        {
+          "left": "Begriff 4",
+          "right": "Zuordnung 4"
+        }
+      ]
     },
     {
       "type": "textInput",
-      "question": "Textfrage?",
-      "answer": "Korrekte Antwort",
-      "fuzzy": true,
-      "timer": 30
+      "timer": 30,
+      "question": "Frage?",
+      "hasVideo": false,
+      "answer": "Richtige Antwort",
+      "fuzzy": true
     }
-  ]
+  ],
+  "gradeScale": {
+    "1": 90,
+    "2": 75,
+    "3": 60,
+    "4": 45,
+    "5": 25
+  }
 }
 \`\`\`
 
 Bitte antworte NUR mit dem JSON-Code, keine weiteren Erklärungen!`
-    };
-
+};
     // Schwierigkeitsbeschreibungen
     const difficultyDescriptions = {
       easy: 'Grundwissen, einfache Konzepte',
